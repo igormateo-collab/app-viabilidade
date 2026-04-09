@@ -1,0 +1,129 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 230 30% 6%;
+    --foreground: 220 20% 92%;
+
+    --card: 235 28% 9%;
+    --card-foreground: 220 20% 92%;
+
+    --popover: 235 28% 9%;
+    --popover-foreground: 220 20% 92%;
+
+    --primary: 239 84% 67%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 235 25% 14%;
+    --secondary-foreground: 220 20% 85%;
+
+    --muted: 235 20% 16%;
+    --muted-foreground: 220 10% 55%;
+
+    --accent: 235 25% 18%;
+    --accent-foreground: 220 20% 92%;
+
+    --destructive: 0 72% 51%;
+    --destructive-foreground: 0 0% 100%;
+
+    --success: 142 71% 45%;
+    --success-foreground: 0 0% 100%;
+
+    --warning: 38 92% 50%;
+    --warning-foreground: 0 0% 0%;
+
+    --info: 199 89% 48%;
+    --info-foreground: 0 0% 100%;
+
+    --border: 235 20% 18%;
+    --input: 235 20% 18%;
+    --ring: 239 84% 67%;
+
+    --radius: 0.75rem;
+
+    --chart-1: 239 84% 67%;
+    --chart-2: 199 89% 48%;
+    --chart-3: 142 71% 45%;
+    --chart-4: 38 92% 50%;
+    --chart-5: 0 72% 51%;
+    --chart-6: 280 65% 60%;
+
+    --sidebar-background: 230 30% 5%;
+    --sidebar-foreground: 220 10% 55%;
+    --sidebar-primary: 239 84% 67%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 235 25% 12%;
+    --sidebar-accent-foreground: 220 20% 92%;
+    --sidebar-border: 235 20% 14%;
+    --sidebar-ring: 239 84% 67%;
+
+    --font-heading: 'Libre Baskerville', Georgia, serif;
+    --font-body: 'IBM Plex Sans', system-ui, sans-serif;
+
+    --glow-primary: 0 0 20px hsl(239 84% 67% / 0.3);
+    --gradient-primary: linear-gradient(135deg, hsl(239 84% 67%), hsl(260 80% 60%));
+    --gradient-card: linear-gradient(145deg, hsl(235 28% 10%), hsl(235 28% 7%));
+    --gradient-success: linear-gradient(135deg, hsl(142 71% 45%), hsl(160 60% 40%));
+    --gradient-warning: linear-gradient(135deg, hsl(38 92% 50%), hsl(25 90% 55%));
+    --gradient-danger: linear-gradient(135deg, hsl(0 72% 51%), hsl(350 70% 45%));
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+    font-family: var(--font-body);
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-heading);
+  }
+}
+
+@layer utilities {
+  .font-heading {
+    font-family: var(--font-heading);
+  }
+  .font-body {
+    font-family: var(--font-body);
+  }
+  .text-gradient {
+    background: var(--gradient-primary);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  .glass {
+    background: hsl(235 28% 9% / 0.6);
+    backdrop-filter: blur(12px);
+    border: 1px solid hsl(235 20% 18% / 0.5);
+  }
+  .glow {
+    box-shadow: var(--glow-primary);
+  }
+  .card-gradient {
+    background: var(--gradient-card);
+  }
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: hsl(230 30% 6%);
+}
+::-webkit-scrollbar-thumb {
+  background: hsl(235 20% 22%);
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: hsl(235 20% 30%);
+}
