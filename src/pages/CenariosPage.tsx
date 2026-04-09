@@ -60,7 +60,7 @@ export default function CenariosPage() {
       <PageHeader title="Cenários e Simulações" description="Comparação calculada entre cenários pessimista, base, otimista e personalizado" />
 
       {/* Cards dos cenários */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
         {allScenarios.map(s => {
           const v = getViabilityStatus(s.netMargin, s.irr, s.npv);
           const isCustom = s.type === "custom";
@@ -137,10 +137,10 @@ export default function CenariosPage() {
       </div>
 
       {/* Gráficos */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        <div className="bg-card border border-border rounded-lg p-5">
-          <h3 className="text-sm font-heading font-semibold text-foreground mb-4">VPL e Lucro por Cenário (R$ M)</h3>
-          <ResponsiveContainer width="100%" height={280}>
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 sm:gap-4">
+        <div className="bg-card border border-border rounded-lg p-3 sm:p-5">
+          <h3 className="text-sm font-heading font-semibold text-foreground mb-3 sm:mb-4">VPL e Lucro por Cenário (R$ M)</h3>
+          <ResponsiveContainer width="100%" height={220}>
             <BarChart data={comparisonData}>
               <CartesianGrid strokeDasharray="3 3" stroke="hsl(235,20%,18%)" />
               <XAxis dataKey="name" tick={{ fontSize: 10, fill: "hsl(220,10%,55%)" }} />
@@ -153,9 +153,9 @@ export default function CenariosPage() {
           </ResponsiveContainer>
         </div>
 
-        <div className="bg-card border border-border rounded-lg p-5">
-          <h3 className="text-sm font-heading font-semibold text-foreground mb-4">Margens e Retornos por Cenário (%)</h3>
-          <ResponsiveContainer width="100%" height={280}>
+        <div className="bg-card border border-border rounded-lg p-3 sm:p-5">
+          <h3 className="text-sm font-heading font-semibold text-foreground mb-3 sm:mb-4">Margens e Retornos por Cenário (%)</h3>
+          <ResponsiveContainer width="100%" height={220}>
             <BarChart data={marginData}>
               <CartesianGrid strokeDasharray="3 3" stroke="hsl(235,20%,18%)" />
               <XAxis dataKey="name" tick={{ fontSize: 10, fill: "hsl(220,10%,55%)" }} />

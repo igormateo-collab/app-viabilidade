@@ -46,16 +46,16 @@ export function KpiCard({
   const card = (
     <div
       className={cn(
-        "rounded-lg border p-4 transition-all hover:shadow-lg hover:shadow-primary/5",
+        "rounded-lg border p-3 sm:p-4 transition-all hover:shadow-lg hover:shadow-primary/5",
         variantStyles[variant],
-        large && "p-6",
+        large && "sm:p-6",
         className
       )}
     >
       <div className="flex items-start justify-between">
         <div className="space-y-1 min-w-0 flex-1">
           <p className="text-[11px] uppercase tracking-wider text-muted-foreground font-body font-medium">{title}</p>
-          <p className={cn("font-heading font-bold text-foreground truncate", large ? "text-2xl" : "text-lg")}>
+          <p className={cn("font-heading font-bold text-foreground truncate", large ? "text-xl sm:text-2xl" : "text-base sm:text-lg")}>
             {value}
           </p>
           {subtitle && (

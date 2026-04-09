@@ -35,9 +35,9 @@ export default function FluxoCaixaPage() {
       </div>
 
       {/* Saldo Acumulado */}
-      <div className="bg-card border border-border rounded-lg p-5">
-        <h3 className="text-sm font-heading font-semibold text-foreground mb-4">Saldo Acumulado (R$)</h3>
-        <ResponsiveContainer width="100%" height={300}>
+      <div className="bg-card border border-border rounded-lg p-3 sm:p-5">
+        <h3 className="text-sm font-heading font-semibold text-foreground mb-3 sm:mb-4">Saldo Acumulado (R$)</h3>
+        <ResponsiveContainer width="100%" height={240}>
           <AreaChart data={chartData}>
             <defs>
               <linearGradient id="gradPos" x1="0" y1="0" x2="0" y2="1">
@@ -56,9 +56,9 @@ export default function FluxoCaixaPage() {
       </div>
 
       {/* Entradas vs Saídas */}
-      <div className="bg-card border border-border rounded-lg p-5">
-        <h3 className="text-sm font-heading font-semibold text-foreground mb-4">Entradas vs. Saídas Mensais</h3>
-        <ResponsiveContainer width="100%" height={300}>
+      <div className="bg-card border border-border rounded-lg p-3 sm:p-5">
+        <h3 className="text-sm font-heading font-semibold text-foreground mb-3 sm:mb-4">Entradas vs. Saídas Mensais</h3>
+        <ResponsiveContainer width="100%" height={240}>
           <BarChart data={chartData}>
             <CartesianGrid strokeDasharray="3 3" stroke="hsl(235,20%,18%)" />
             <XAxis dataKey="month" tick={{ fontSize: 10, fill: "hsl(220,10%,55%)" }} />

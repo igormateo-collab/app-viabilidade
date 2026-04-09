@@ -33,10 +33,10 @@ export default function SensibilidadePage() {
           }
         </button>
         {!sensitivity && !sensitivityLoading && (
-          <p className="text-xs text-muted-foreground">Clique para rodar o Tornado e Monte Carlo com 400 iterações de amostragem</p>
+          <p className="text-xs text-muted-foreground hidden sm:block">Clique para rodar o Tornado e Monte Carlo com 400 iterações de amostragem</p>
         )}
         {sensitivity && (
-          <div className="flex gap-6 text-xs text-muted-foreground">
+          <div className="flex flex-wrap gap-3 sm:gap-6 text-xs text-muted-foreground">
             <span>TIR Mediana: <strong className="text-foreground">{sensitivity.stats.irrMedian.toFixed(1)}%</strong></span>
             <span>IC 90%: <strong className="text-foreground">{sensitivity.stats.irrP10.toFixed(1)}% — {sensitivity.stats.irrP90.toFixed(1)}%</strong></span>
             <span>Prob. TIR &gt; 15%: <strong className="text-success">{sensitivity.stats.probIrrAbove15}%</strong></span>
@@ -48,14 +48,14 @@ export default function SensibilidadePage() {
       {sensitivity && (
         <>
           {/* Tornado */}
-          <div className="bg-card border border-border rounded-lg p-5">
+          <div className="bg-card border border-border rounded-lg p-3 sm:p-5">
             <h3 className="text-sm font-heading font-semibold text-foreground mb-1">Gráfico Tornado — Impacto no VPL (R$ milhões)</h3>
-            <p className="text-xs text-muted-foreground mb-4">Variação de ±10–20% em cada input. Amplitude = impacto no VPL do projeto base.</p>
-            <ResponsiveContainer width="100%" height={320}>
+            <p className="text-xs text-muted-foreground mb-3 sm:mb-4">Variação de ±10–20% em cada input. Amplitude = impacto no VPL do projeto base.</p>
+            <ResponsiveContainer width="100%" height={260}>
               <BarChart data={tornadoData} layout="vertical">
                 <CartesianGrid strokeDasharray="3 3" stroke="hsl(235,20%,18%)" />
-                <XAxis type="number" tick={{ fontSize: 10, fill: "hsl(220,10%,55%)" }} unit="M" />
-                <YAxis type="category" dataKey="name" width={170} tick={{ fontSize: 11, fill: "hsl(220,10%,55%)" }} />
+                <XAxis type="number" tick={{ fontSize: 9, fill: "hsl(220,10%,55%)" }} unit="M" />
+                <YAxis type="category" dataKey="name" width={140} tick={{ fontSize: 10, fill: "hsl(220,10%,55%)" }} />
                 <Tooltip contentStyle={{ background: "hsl(235,28%,9%)", border: "1px solid hsl(235,20%,18%)", borderRadius: 8, fontSize: 12 }}
                   formatter={(v: number) => ["R$ " + v.toFixed(1) + "M", "Impacto VPL"]} />
                 <Bar dataKey="value" radius={[0,4,4,0]}>
@@ -66,10 +66,10 @@ export default function SensibilidadePage() {
           </div>
 
           {/* Monte Carlo */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-            <div className="bg-card border border-border rounded-lg p-5">
-              <h3 className="text-sm font-heading font-semibold text-foreground mb-4">Monte Carlo — Distribuição da TIR</h3>
-              <ResponsiveContainer width="100%" height={280}>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 sm:gap-4">
+            <div className="bg-card border border-border rounded-lg p-3 sm:p-5">
+              <h3 className="text-sm font-heading font-semibold text-foreground mb-3 sm:mb-4">Monte Carlo — Distribuição da TIR</h3>
+              <ResponsiveContainer width="100%" height={220}>
                 <BarChart data={sensitivity.monteCarloIRR}>
                   <CartesianGrid strokeDasharray="3 3" stroke="hsl(235,20%,18%)" />
                   <XAxis dataKey="range" tick={{ fontSize: 9, fill: "hsl(220,10%,55%)" }} />
@@ -84,9 +84,9 @@ export default function SensibilidadePage() {
               </div>
             </div>
 
-            <div className="bg-card border border-border rounded-lg p-5">
-              <h3 className="text-sm font-heading font-semibold text-foreground mb-4">Monte Carlo — Distribuição do VPL</h3>
-              <ResponsiveContainer width="100%" height={280}>
+            <div className="bg-card border border-border rounded-lg p-3 sm:p-5">
+              <h3 className="text-sm font-heading font-semibold text-foreground mb-3 sm:mb-4">Monte Carlo — Distribuição do VPL</h3>
+              <ResponsiveContainer width="100%" height={220}>
                 <BarChart data={sensitivity.monteCarloNPV}>
                   <CartesianGrid strokeDasharray="3 3" stroke="hsl(235,20%,18%)" />
                   <XAxis dataKey="range" tick={{ fontSize: 9, fill: "hsl(220,10%,55%)" }} />

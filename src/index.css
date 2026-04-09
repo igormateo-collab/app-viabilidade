@@ -127,3 +127,25 @@
 ::-webkit-scrollbar-thumb:hover {
   background: hsl(235 20% 30%);
 }
+
+/* Mobile safe area (notch / home indicator) */
+.safe-area-pb {
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+/* Touch-friendly tap targets on mobile */
+@media (max-width: 767px) {
+  button, a, [role="button"] {
+    min-height: 40px;
+  }
+
+  /* Improve table readability on small screens */
+  table {
+    font-size: 11px;
+  }
+
+  /* Reduce excessive spacing in cards on mobile */
+  .space-y-6 > * + * {
+    margin-top: 1rem;
+  }
+}
