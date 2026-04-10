@@ -1,15 +1,31 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { PageHeader } from "@/components/PageHeader";
 import { EditableField } from "@/components/EditableField";
 import { useProject } from "@/contexts/ProjectContext";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import { RotateCcw, Search, Loader2, MapPin } from "lucide-react";
+import { RotateCcw, Search, Loader2, MapPin, ExternalLink } from "lucide-react";
 
 export default function EmpreendimentoPage() {
   const { enterprise, updateEnterprise } = useProject();
   const [cep, setCep] = useState("");
   const [loadingCep, setLoadingCep] = useState(false);
+
+  const fullAddress = useMemo(() => {
+    const parts = [enterprise.address, enterprise.neighborhood, enterprise.city, enterprise.state]
+      .filter(Boolean).join(", ");
+    return parts;
+  }, [enterprise.address, enterprise.neighborhood, enterprise.city, enterprise.state]);
+
+  const mapsSearchUrl = useMemo(() => {
+    if (!fullAddress) return null;
+    return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(fullAddress)}`;
+  }, [fullAddress]);
+
+  const mapsEmbedUrl = useMemo(() => {
+    if (!fullAddress) return null;
+    return `https://maps.google.com/maps?q=${encodeURIComponent(fullAddress)}&output=embed&hl=pt-BR&z=15`;
+  }, [fullAddress]);
 
   const handleSave = (key: string, value: string) => {
     const numericKeys = ["towers", "blocks", "floors", "totalUnits", "landArea", "builtArea", "privateArea", "commonArea", "sellableArea", "totalMonths"];
@@ -180,6 +196,40 @@ export default function EmpreendimentoPage() {
               />
             ))}
           </div>
+
+          {/* Google Maps */}
+          {mapsEmbedUrl && (
+            <div className="mt-4 space-y-2">
+              <div className="rounded-lg overflow-hidden border border-border">
+                <iframe
+                  key={mapsEmbedUrl}
+                  src={mapsEmbedUrl}
+                  width="100%"
+                  height="220"
+                  style={{ border: 0 }}
+                  allowFullScreen
+                  loading="lazy"
+                  referrerPolicy="no-referrer-when-downgrade"
+                  title="Localização no mapa"
+                />
+              </div>
+              <a
+                href={mapsSearchUrl!}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center justify-center gap-2 w-full h-9 bg-primary text-primary-foreground text-xs font-medium rounded-md hover:bg-primary/90 transition-colors"
+              >
+                <ExternalLink className="h-3.5 w-3.5" />
+                Abrir no Google Maps
+              </a>
+            </div>
+          )}
+
+          {!fullAddress && (
+            <p className="mt-3 text-[11px] text-muted-foreground text-center py-2">
+              Preencha o endereço acima para ver o mapa
+            </p>
+          )}
         </div>
 
         {/* Projeto */}
