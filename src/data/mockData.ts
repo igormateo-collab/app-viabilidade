@@ -13,6 +13,7 @@ export interface Enterprise {
   state: string;
   neighborhood: string;
   address: string;
+  addressNumber: string;
   standard: string;
   typology: string;
   towers: number;
@@ -152,7 +153,8 @@ export const enterprise: Enterprise = {
   city: "São Paulo",
   state: "SP",
   neighborhood: "Vila Mariana",
-  address: "Rua Domingos de Morais, 2200",
+  address: "Rua Domingos de Morais",
+  addressNumber: "2200",
   standard: "Alto Padrão",
   typology: "Apartamentos de 2 e 3 dormitórios",
   towers: 2,

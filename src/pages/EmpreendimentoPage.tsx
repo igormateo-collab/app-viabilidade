@@ -12,10 +12,10 @@ export default function EmpreendimentoPage() {
   const [loadingCep, setLoadingCep] = useState(false);
 
   const fullAddress = useMemo(() => {
-    const parts = [enterprise.address, enterprise.neighborhood, enterprise.city, enterprise.state]
-      .filter(Boolean).join(", ");
+    const street = [enterprise.address, enterprise.addressNumber].filter(Boolean).join(", ");
+    const parts = [street, enterprise.neighborhood, enterprise.city, enterprise.state].filter(Boolean).join(", ");
     return parts;
-  }, [enterprise.address, enterprise.neighborhood, enterprise.city, enterprise.state]);
+  }, [enterprise.address, enterprise.addressNumber, enterprise.neighborhood, enterprise.city, enterprise.state]);
 
   const mapsSearchUrl = useMemo(() => {
     if (!fullAddress) return null;
@@ -95,6 +95,7 @@ export default function EmpreendimentoPage() {
 
   const localizacaoFields = [
     { label: "Logradouro / Endereço", key: "address" },
+    { label: "Número", key: "addressNumber" },
     { label: "Bairro", key: "neighborhood" },
     { label: "Cidade", key: "city" },
     { label: "Estado (UF)", key: "state" },
