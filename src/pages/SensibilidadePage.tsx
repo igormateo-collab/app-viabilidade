@@ -53,10 +53,10 @@ export default function SensibilidadePage() {
             <p className="text-xs text-muted-foreground mb-3 sm:mb-4">Variação de ±10–20% em cada input. Amplitude = impacto no VPL do projeto base.</p>
             <ResponsiveContainer width="100%" height={260}>
               <BarChart data={tornadoData} layout="vertical">
-                <CartesianGrid strokeDasharray="3 3" stroke="hsl(235,20%,18%)" />
+                <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
                 <XAxis type="number" tick={{ fontSize: 9, fill: "hsl(220,10%,55%)" }} unit="M" />
                 <YAxis type="category" dataKey="name" width={140} tick={{ fontSize: 10, fill: "hsl(220,10%,55%)" }} />
-                <Tooltip contentStyle={{ background: "hsl(235,28%,9%)", border: "1px solid hsl(235,20%,18%)", borderRadius: 8, fontSize: 12 }}
+                <Tooltip contentStyle={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))", borderRadius: 8, fontSize: 12 }}
                   formatter={(v: number) => ["R$ " + v.toFixed(1) + "M", "Impacto VPL"]} />
                 <Bar dataKey="value" radius={[0,4,4,0]}>
                   {tornadoData.map((entry, i) => <Cell key={i} fill={entry.fill} />)}
@@ -71,11 +71,11 @@ export default function SensibilidadePage() {
               <h3 className="text-sm font-heading font-semibold text-foreground mb-3 sm:mb-4">Monte Carlo — Distribuição da TIR</h3>
               <ResponsiveContainer width="100%" height={220}>
                 <BarChart data={sensitivity.monteCarloIRR}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="hsl(235,20%,18%)" />
+                  <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
                   <XAxis dataKey="range" tick={{ fontSize: 9, fill: "hsl(220,10%,55%)" }} />
                   <YAxis tick={{ fontSize: 10, fill: "hsl(220,10%,55%)" }} unit="%" />
-                  <Tooltip contentStyle={{ background: "hsl(235,28%,9%)", border: "1px solid hsl(235,20%,18%)", borderRadius: 8, fontSize: 12 }} />
-                  <Bar dataKey="probability" fill="hsl(239,84%,67%)" radius={[4,4,0,0]} />
+                  <Tooltip contentStyle={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))", borderRadius: 8, fontSize: 12 }} />
+                  <Bar dataKey="probability" fill="hsl(43,85%,57%)" radius={[4,4,0,0]} />
                 </BarChart>
               </ResponsiveContainer>
               <div className="mt-3 text-xs text-muted-foreground space-y-1">
@@ -88,10 +88,10 @@ export default function SensibilidadePage() {
               <h3 className="text-sm font-heading font-semibold text-foreground mb-3 sm:mb-4">Monte Carlo — Distribuição do VPL</h3>
               <ResponsiveContainer width="100%" height={220}>
                 <BarChart data={sensitivity.monteCarloNPV}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="hsl(235,20%,18%)" />
+                  <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
                   <XAxis dataKey="range" tick={{ fontSize: 9, fill: "hsl(220,10%,55%)" }} />
                   <YAxis tick={{ fontSize: 10, fill: "hsl(220,10%,55%)" }} unit="%" />
-                  <Tooltip contentStyle={{ background: "hsl(235,28%,9%)", border: "1px solid hsl(235,20%,18%)", borderRadius: 8, fontSize: 12 }} />
+                  <Tooltip contentStyle={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))", borderRadius: 8, fontSize: 12 }} />
                   <Bar dataKey="probability" fill="hsl(199,89%,48%)" radius={[4,4,0,0]} />
                 </BarChart>
               </ResponsiveContainer>

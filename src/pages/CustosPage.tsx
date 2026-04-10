@@ -10,7 +10,7 @@ import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from "recharts";
 import { Hammer, Plus, Trash2, Save, X } from "lucide-react";
 import { toast } from "sonner";
 
-const COLORS = ["hsl(239,84%,67%)", "hsl(199,89%,48%)", "hsl(142,71%,45%)", "hsl(38,92%,50%)", "hsl(0,72%,51%)", "hsl(280,65%,60%)", "hsl(320,70%,55%)", "hsl(170,60%,45%)"];
+const COLORS = ["hsl(43,85%,57%)", "hsl(199,89%,48%)", "hsl(142,71%,45%)", "hsl(38,92%,50%)", "hsl(0,72%,51%)", "hsl(280,65%,60%)", "hsl(320,70%,55%)", "hsl(170,60%,45%)"];
 
 export default function CustosPage() {
   const { indicators, enterprise } = useProject();

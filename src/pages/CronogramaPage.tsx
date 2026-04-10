@@ -29,10 +29,10 @@ export default function CronogramaPage() {
                 <stop offset="95%" stopColor="hsl(199,89%,48%)" stopOpacity={0} />
               </linearGradient>
             </defs>
-            <CartesianGrid strokeDasharray="3 3" stroke="hsl(235,20%,18%)" />
+            <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
             <XAxis dataKey="month" tick={{ fontSize: 10, fill: "hsl(220,10%,55%)" }} />
             <YAxis tick={{ fontSize: 10, fill: "hsl(220,10%,55%)" }} unit="%" />
-            <Tooltip contentStyle={{ background: "hsl(235,28%,9%)", border: "1px solid hsl(235,20%,18%)", borderRadius: 8, fontSize: 12 }} />
+            <Tooltip contentStyle={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))", borderRadius: 8, fontSize: 12 }} />
             <Area type="monotone" dataKey="Progresso Físico (%)" stroke="hsl(199,89%,48%)" fill="url(#gradPhysical)" strokeWidth={2} />
           </AreaChart>
         </ResponsiveContainer>
@@ -43,10 +43,10 @@ export default function CronogramaPage() {
         <h3 className="text-sm font-heading font-semibold text-foreground mb-4">Desembolso vs. Receita</h3>
         <ResponsiveContainer width="100%" height={280}>
           <LineChart data={financialData}>
-            <CartesianGrid strokeDasharray="3 3" stroke="hsl(235,20%,18%)" />
+            <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
             <XAxis dataKey="month" tick={{ fontSize: 10, fill: "hsl(220,10%,55%)" }} />
             <YAxis tick={{ fontSize: 10, fill: "hsl(220,10%,55%)" }} tickFormatter={(v) => (v / 1e6).toFixed(1) + "M"} />
-            <Tooltip contentStyle={{ background: "hsl(235,28%,9%)", border: "1px solid hsl(235,20%,18%)", borderRadius: 8, fontSize: 12 }} formatter={(v: number) => formatCurrency(v)} />
+            <Tooltip contentStyle={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))", borderRadius: 8, fontSize: 12 }} formatter={(v: number) => formatCurrency(v)} />
             <Legend wrapperStyle={{ fontSize: 11 }} />
             <Line type="monotone" dataKey="Desembolso" stroke="hsl(0,72%,51%)" strokeWidth={2} dot={false} />
             <Line type="monotone" dataKey="Receita" stroke="hsl(142,71%,45%)" strokeWidth={2} dot={false} />

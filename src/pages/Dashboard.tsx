@@ -11,7 +11,7 @@ import {
 } from "recharts";
 import { motion } from "framer-motion";
 
-const COLORS = ["hsl(239,84%,67%)", "hsl(199,89%,48%)", "hsl(142,71%,45%)", "hsl(38,92%,50%)", "hsl(0,72%,51%)", "hsl(280,65%,60%)"];
+const COLORS = ["hsl(43,85%,57%)", "hsl(199,89%,48%)", "hsl(142,71%,45%)", "hsl(38,92%,50%)", "hsl(0,72%,51%)", "hsl(280,65%,60%)"];
 const fadeIn = { initial: { opacity: 0, y: 10 }, animate: { opacity: 1, y: 0 }, transition: { duration: 0.3 } };
 
 export default function Dashboard() {
@@ -118,15 +118,15 @@ export default function Dashboard() {
             <AreaChart data={cashFlowChart}>
               <defs>
                 <linearGradient id="gradCash" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="hsl(239,84%,67%)" stopOpacity={0.3} />
-                  <stop offset="95%" stopColor="hsl(239,84%,67%)" stopOpacity={0} />
+                  <stop offset="5%" stopColor="hsl(43,85%,57%)" stopOpacity={0.3} />
+                  <stop offset="95%" stopColor="hsl(43,85%,57%)" stopOpacity={0} />
                 </linearGradient>
               </defs>
-              <CartesianGrid strokeDasharray="3 3" stroke="hsl(235,20%,18%)" />
+              <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
               <XAxis dataKey="month" tick={{ fontSize: 9, fill: "hsl(220,10%,55%)" }} interval="preserveStartEnd" />
               <YAxis tick={{ fontSize: 9, fill: "hsl(220,10%,55%)" }} tickFormatter={(v) => (v / 1e6).toFixed(0) + "M"} width={32} />
-              <RTooltip contentStyle={{ background: "hsl(235,28%,9%)", border: "1px solid hsl(235,20%,18%)", borderRadius: 8, fontSize: 11 }} formatter={(v: number) => formatCurrency(v)} />
-              <Area type="monotone" dataKey="Saldo Acumulado" stroke="hsl(239,84%,67%)" fill="url(#gradCash)" strokeWidth={2} />
+              <RTooltip contentStyle={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))", borderRadius: 8, fontSize: 11 }} formatter={(v: number) => formatCurrency(v)} />
+              <Area type="monotone" dataKey="Saldo Acumulado" stroke="hsl(43,85%,57%)" fill="url(#gradCash)" strokeWidth={2} />
             </AreaChart>
           </ResponsiveContainer>
         </motion.div>
@@ -140,7 +140,7 @@ export default function Dashboard() {
                 label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`} labelLine={false}>
                 {pieData.map((_, i) => <Cell key={i} fill={COLORS[i % COLORS.length]} />)}
               </Pie>
-              <RTooltip contentStyle={{ background: "hsl(235,28%,9%)", border: "1px solid hsl(235,20%,18%)", borderRadius: 8, fontSize: 11 }} formatter={(v: number) => formatCurrency(v)} />
+              <RTooltip contentStyle={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))", borderRadius: 8, fontSize: 11 }} formatter={(v: number) => formatCurrency(v)} />
             </PieChart>
           </ResponsiveContainer>
         </motion.div>
@@ -150,12 +150,12 @@ export default function Dashboard() {
           <h3 className="text-sm font-heading font-semibold text-foreground mb-3 sm:mb-4">Comparação de Cenários (%)</h3>
           <ResponsiveContainer width="100%" height={220}>
             <BarChart data={scenarioComparison}>
-              <CartesianGrid strokeDasharray="3 3" stroke="hsl(235,20%,18%)" />
+              <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
               <XAxis dataKey="name" tick={{ fontSize: 10, fill: "hsl(220,10%,55%)" }} />
               <YAxis tick={{ fontSize: 9, fill: "hsl(220,10%,55%)" }} unit="%" width={28} />
-              <RTooltip contentStyle={{ background: "hsl(235,28%,9%)", border: "1px solid hsl(235,20%,18%)", borderRadius: 8, fontSize: 11 }} />
+              <RTooltip contentStyle={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))", borderRadius: 8, fontSize: 11 }} />
               <Legend wrapperStyle={{ fontSize: 10 }} />
-              <Bar dataKey="Margem Líq." fill="hsl(239,84%,67%)" radius={[4,4,0,0]} />
+              <Bar dataKey="Margem Líq." fill="hsl(43,85%,57%)" radius={[4,4,0,0]} />
               <Bar dataKey="TIR" fill="hsl(38,92%,50%)" radius={[4,4,0,0]} />
               <Bar dataKey="ROI" fill="hsl(142,71%,45%)" radius={[4,4,0,0]} />
             </BarChart>
@@ -167,10 +167,10 @@ export default function Dashboard() {
           <h3 className="text-sm font-heading font-semibold text-foreground mb-3 sm:mb-4">VGV por Tipologia</h3>
           <ResponsiveContainer width="100%" height={220}>
             <BarChart data={vgvByType} layout="vertical">
-              <CartesianGrid strokeDasharray="3 3" stroke="hsl(235,20%,18%)" />
+              <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
               <XAxis type="number" tick={{ fontSize: 9, fill: "hsl(220,10%,55%)" }} tickFormatter={(v) => (v / 1e6).toFixed(0) + "M"} />
               <YAxis type="category" dataKey="name" width={110} tick={{ fontSize: 9, fill: "hsl(220,10%,55%)" }} />
-              <RTooltip contentStyle={{ background: "hsl(235,28%,9%)", border: "1px solid hsl(235,20%,18%)", borderRadius: 8, fontSize: 11 }} formatter={(v: number) => formatCurrency(v)} />
+              <RTooltip contentStyle={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))", borderRadius: 8, fontSize: 11 }} formatter={(v: number) => formatCurrency(v)} />
               <Bar dataKey="value" fill="hsl(199,89%,48%)" radius={[0,4,4,0]} />
             </BarChart>
           </ResponsiveContainer>

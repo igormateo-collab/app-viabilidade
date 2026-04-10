@@ -41,16 +41,16 @@ export default function FluxoCaixaPage() {
           <AreaChart data={chartData}>
             <defs>
               <linearGradient id="gradPos" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="5%" stopColor="hsl(239,84%,67%)" stopOpacity={0.3} />
-                <stop offset="95%" stopColor="hsl(239,84%,67%)" stopOpacity={0} />
+                <stop offset="5%" stopColor="hsl(43,85%,57%)" stopOpacity={0.3} />
+                <stop offset="95%" stopColor="hsl(43,85%,57%)" stopOpacity={0} />
               </linearGradient>
             </defs>
-            <CartesianGrid strokeDasharray="3 3" stroke="hsl(235,20%,18%)" />
+            <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
             <XAxis dataKey="month" tick={{ fontSize: 10, fill: "hsl(220,10%,55%)" }} />
             <YAxis tick={{ fontSize: 10, fill: "hsl(220,10%,55%)" }} tickFormatter={(v) => (v / 1e6).toFixed(0) + "M"} />
-            <Tooltip contentStyle={{ background: "hsl(235,28%,9%)", border: "1px solid hsl(235,20%,18%)", borderRadius: 8, fontSize: 12 }} formatter={(v: number) => formatCurrency(v)} />
+            <Tooltip contentStyle={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))", borderRadius: 8, fontSize: 12 }} formatter={(v: number) => formatCurrency(v)} />
             <ReferenceLine y={0} stroke="hsl(220,10%,55%)" strokeDasharray="3 3" />
-            <Area type="monotone" dataKey="Saldo Acumulado" stroke="hsl(239,84%,67%)" fill="url(#gradPos)" strokeWidth={2} />
+            <Area type="monotone" dataKey="Saldo Acumulado" stroke="hsl(43,85%,57%)" fill="url(#gradPos)" strokeWidth={2} />
           </AreaChart>
         </ResponsiveContainer>
       </div>
@@ -60,10 +60,10 @@ export default function FluxoCaixaPage() {
         <h3 className="text-sm font-heading font-semibold text-foreground mb-3 sm:mb-4">Entradas vs. Saídas Mensais</h3>
         <ResponsiveContainer width="100%" height={240}>
           <BarChart data={chartData}>
-            <CartesianGrid strokeDasharray="3 3" stroke="hsl(235,20%,18%)" />
+            <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
             <XAxis dataKey="month" tick={{ fontSize: 10, fill: "hsl(220,10%,55%)" }} />
             <YAxis tick={{ fontSize: 10, fill: "hsl(220,10%,55%)" }} tickFormatter={(v) => (v / 1e6).toFixed(0) + "M"} />
-            <Tooltip contentStyle={{ background: "hsl(235,28%,9%)", border: "1px solid hsl(235,20%,18%)", borderRadius: 8, fontSize: 12 }} formatter={(v: number) => formatCurrency(v)} />
+            <Tooltip contentStyle={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))", borderRadius: 8, fontSize: 12 }} formatter={(v: number) => formatCurrency(v)} />
             <Legend wrapperStyle={{ fontSize: 11 }} />
             <Bar dataKey="Entradas" fill="hsl(142,71%,45%)" radius={[2,2,0,0]} />
             <Bar dataKey="Saídas" fill="hsl(0,72%,51%)" radius={[2,2,0,0]} />

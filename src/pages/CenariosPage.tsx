@@ -142,12 +142,12 @@ export default function CenariosPage() {
           <h3 className="text-sm font-heading font-semibold text-foreground mb-3 sm:mb-4">VPL e Lucro por Cenário (R$ M)</h3>
           <ResponsiveContainer width="100%" height={220}>
             <BarChart data={comparisonData}>
-              <CartesianGrid strokeDasharray="3 3" stroke="hsl(235,20%,18%)" />
+              <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
               <XAxis dataKey="name" tick={{ fontSize: 10, fill: "hsl(220,10%,55%)" }} />
               <YAxis tick={{ fontSize: 10, fill: "hsl(220,10%,55%)" }} unit="M" />
-              <Tooltip contentStyle={{ background: "hsl(235,28%,9%)", border: "1px solid hsl(235,20%,18%)", borderRadius: 8, fontSize: 12 }} />
+              <Tooltip contentStyle={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))", borderRadius: 8, fontSize: 12 }} />
               <Legend wrapperStyle={{ fontSize: 11 }} />
-              <Bar dataKey="VPL (M)" fill="hsl(239,84%,67%)" radius={[4,4,0,0]} />
+              <Bar dataKey="VPL (M)" fill="hsl(43,85%,57%)" radius={[4,4,0,0]} />
               <Bar dataKey="Lucro (M)" fill="hsl(142,71%,45%)" radius={[4,4,0,0]} />
             </BarChart>
           </ResponsiveContainer>
@@ -157,12 +157,12 @@ export default function CenariosPage() {
           <h3 className="text-sm font-heading font-semibold text-foreground mb-3 sm:mb-4">Margens e Retornos por Cenário (%)</h3>
           <ResponsiveContainer width="100%" height={220}>
             <BarChart data={marginData}>
-              <CartesianGrid strokeDasharray="3 3" stroke="hsl(235,20%,18%)" />
+              <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
               <XAxis dataKey="name" tick={{ fontSize: 10, fill: "hsl(220,10%,55%)" }} />
               <YAxis tick={{ fontSize: 10, fill: "hsl(220,10%,55%)" }} unit="%" />
-              <Tooltip contentStyle={{ background: "hsl(235,28%,9%)", border: "1px solid hsl(235,20%,18%)", borderRadius: 8, fontSize: 12 }} />
+              <Tooltip contentStyle={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))", borderRadius: 8, fontSize: 12 }} />
               <Legend wrapperStyle={{ fontSize: 11 }} />
-              <Bar dataKey="Margem (%)" fill="hsl(239,84%,67%)" radius={[4,4,0,0]} />
+              <Bar dataKey="Margem (%)" fill="hsl(43,85%,57%)" radius={[4,4,0,0]} />
               <Bar dataKey="TIR (%)" fill="hsl(38,92%,50%)" radius={[4,4,0,0]} />
               <Bar dataKey="ROI (%)" fill="hsl(199,89%,48%)" radius={[4,4,0,0]} />
             </BarChart>

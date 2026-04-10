@@ -4,9 +4,21 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <!-- TODO: Set the document title to the name of your application -->
-    <title>Lovable App</title>
-    <meta name="description" content="Lovable Generated Project">
-    <meta name="author" content="Lovable" />
+    <title>ViabilityPro — Análise de Viabilidade</title>
+    <meta name="description" content="Plataforma de análise de viabilidade para projetos imobiliários">
+    <meta name="author" content="ViabilityPro" />
+    <!-- Anti-flash: apply theme before React mounts -->
+    <script>
+      (function () {
+        try {
+          var saved = localStorage.getItem("theme");
+          var isDark = saved === "dark" || (!saved && window.matchMedia("(prefers-color-scheme: dark)").matches);
+          document.documentElement.classList.add(isDark ? "dark" : "light");
+        } catch (e) {
+          document.documentElement.classList.add("dark");
+        }
+      })();
+    </script>
 
     <!-- TODO: Update og:title to match your application name -->
     

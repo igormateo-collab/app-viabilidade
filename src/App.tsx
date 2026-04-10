@@ -5,6 +5,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { AppLayout } from "@/components/AppLayout";
 import { ProjectProvider } from "@/contexts/ProjectContext";
+import { ThemeProvider } from "@/hooks/use-theme";
 import Dashboard from "./pages/Dashboard";
 import EmpreendimentoPage from "./pages/EmpreendimentoPage";
 import TerrenoPage from "./pages/TerrenoPage";
@@ -28,6 +29,7 @@ import NotFound from "./pages/NotFound";
 const queryClient = new QueryClient();
 
 const App = () => (
+  <ThemeProvider>
   <QueryClientProvider client={queryClient}>
     <ProjectProvider>
     <TooltipProvider>
@@ -61,6 +63,7 @@ const App = () => (
     </TooltipProvider>
     </ProjectProvider>
   </QueryClientProvider>
+  </ThemeProvider>
 );
 
 export default App;
