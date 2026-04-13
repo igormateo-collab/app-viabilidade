@@ -3,6 +3,13 @@
 // 2. Copie a chave (começa com gsk_...)
 // 3. Vercel → Settings → Environment Variables → GROQ_API_KEY = gsk_...
 // 4. Redeploy
+// Detecta se a requisição tem arquivo
+function temArquivo(messages) {
+  return (messages || []).some(msg =>
+    Array.isArray(msg.content) &&
+    msg.content.some(b => b.type === "image" || b.type === "document")
+  );
+}
 
 export default async function handler(req, res) {
   if (req.method !== "POST") {
