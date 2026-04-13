@@ -25,44 +25,47 @@ import ComparadorPage from "./pages/ComparadorPage";
 import ConfiguracoesPage from "./pages/ConfiguracoesPage";
 import AuditoriaPage from "./pages/AuditoriaPage";
 import NotFound from "./pages/NotFound";
+import AIAssistant from "./AIAssistant";
 
 const queryClient = new QueryClient();
 
 const App = () => (
   <ThemeProvider>
-  <QueryClientProvider client={queryClient}>
-    <ProjectProvider>
-    <TooltipProvider>
-      <Toaster />
-      <Sonner />
-      <BrowserRouter>
-        <AppLayout>
-          <Routes>
-            <Route path="/" element={<Dashboard />} />
-            <Route path="/empreendimento" element={<EmpreendimentoPage />} />
-            <Route path="/terreno" element={<TerrenoPage />} />
-            <Route path="/produto" element={<ProdutoPage />} />
-            <Route path="/custos" element={<CustosPage />} />
-            <Route path="/despesas" element={<DespesasPage />} />
-            <Route path="/receitas" element={<ReceitasPage />} />
-            <Route path="/cronograma" element={<CronogramaPage />} />
-            <Route path="/funding" element={<FundingPage />} />
-            <Route path="/tributos" element={<TributosPage />} />
-            <Route path="/fluxo-caixa" element={<FluxoCaixaPage />} />
-            <Route path="/indicadores" element={<IndicadoresPage />} />
-            <Route path="/cenarios" element={<CenariosPage />} />
-            <Route path="/sensibilidade" element={<SensibilidadePage />} />
-            <Route path="/relatorios" element={<RelatoriosPage />} />
-            <Route path="/comparador" element={<ComparadorPage />} />
-            <Route path="/configuracoes" element={<ConfiguracoesPage />} />
-            <Route path="/auditoria" element={<AuditoriaPage />} />
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-        </AppLayout>
-      </BrowserRouter>
-    </TooltipProvider>
-    </ProjectProvider>
-  </QueryClientProvider>
+    <QueryClientProvider client={queryClient}>
+      <ProjectProvider>
+        <TooltipProvider>
+          <Toaster />
+          <Sonner />
+          <BrowserRouter>
+            <AppLayout>
+              <Routes>
+                <Route path="/" element={<Dashboard />} />
+                <Route path="/empreendimento" element={<EmpreendimentoPage />} />
+                <Route path="/terreno" element={<TerrenoPage />} />
+                <Route path="/produto" element={<ProdutoPage />} />
+                <Route path="/custos" element={<CustosPage />} />
+                <Route path="/despesas" element={<DespesasPage />} />
+                <Route path="/receitas" element={<ReceitasPage />} />
+                <Route path="/cronograma" element={<CronogramaPage />} />
+                <Route path="/funding" element={<FundingPage />} />
+                <Route path="/tributos" element={<TributosPage />} />
+                <Route path="/fluxo-caixa" element={<FluxoCaixaPage />} />
+                <Route path="/indicadores" element={<IndicadoresPage />} />
+                <Route path="/cenarios" element={<CenariosPage />} />
+                <Route path="/sensibilidade" element={<SensibilidadePage />} />
+                <Route path="/relatorios" element={<RelatoriosPage />} />
+                <Route path="/comparador" element={<ComparadorPage />} />
+                <Route path="/configuracoes" element={<ConfiguracoesPage />} />
+                <Route path="/auditoria" element={<AuditoriaPage />} />
+                <Route path="*" element={<NotFound />} />
+              </Routes>
+            </AppLayout>
+            {/* Botão IA — flutua sobre todas as páginas */}
+            <AIAssistant />
+          </BrowserRouter>
+        </TooltipProvider>
+      </ProjectProvider>
+    </QueryClientProvider>
   </ThemeProvider>
 );
 
