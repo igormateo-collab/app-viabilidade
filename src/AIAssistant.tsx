@@ -132,7 +132,6 @@ async function callProxy({ messages, systemFull, useSearch = true, maxTokens = 1
     system: systemFull,
     messages,
   };
-  if (useSearch) body.tools = [{ type: "web_search_20250305", name: "web_search" }];
 
   const resp = await fetch("/api/ai-chat", {
     method: "POST",
