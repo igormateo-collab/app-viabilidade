@@ -1,8 +1,4 @@
-export default function AIAssistant({ onApplyFields }) {
-  const { project: s, results: r, updateProject } = useProject();
-  const applyFn = onApplyFields || ((fields) => updateProject(fields));
 /**
-import { useProject } from "@/contexts/ProjectContext";
  * AIAssistant v3 — Especialista em Incorporação Imobiliária
  * Bahia (estado completo) e Brasil · PDF · Imagens (JPG, PNG, WEBP…) · Colar print
  */
