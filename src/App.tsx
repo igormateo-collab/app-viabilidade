@@ -21,6 +21,7 @@ import IndicadoresPage from "./pages/IndicadoresPage";
 import CenariosPage from "./pages/CenariosPage";
 import SensibilidadePage from "./pages/SensibilidadePage";
 import RelatoriosPage from "./pages/RelatoriosPage";
+import AIAssistant from "./AIAssistant";
 import ComparadorPage from "./pages/ComparadorPage";
 import ConfiguracoesPage from "./pages/ConfiguracoesPage";
 import AuditoriaPage from "./pages/AuditoriaPage";
@@ -58,6 +59,7 @@ const App = () => (
             <Route path="/auditoria" element={<AuditoriaPage />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
+          <AIAssistant />
         </AppLayout>
       </BrowserRouter>
     </TooltipProvider>
