@@ -9,50 +9,44 @@ export default async function handler(req, res) {
 
   const apiKey = process.env.GEMINI_API_KEY;
   if (!apiKey) {
-    return res.status(500).json({
-      error: "GEMINI_API_KEY não configurada no Vercel."
-    });
+    return res.status(500).json({ error: "GEMINI_API_KEY não configurada no Vercel." });
   }
 
   try {
     const { messages, system, max_tokens } = req.body;
-
     const geminiContents = [];
 
-    // Injeta o system prompt como primeira mensagem do usuário
-    // (API v1 não tem systemInstruction — colocamos no início do contexto)
+    // System prompt injetado como contexto inicial
     if (system) {
       geminiContents.push({
         role: "user",
-        parts: [{ text: `[INSTRUÇÕES DO SISTEMA]\n${system}\n[FIM DAS INSTRUÇÕES]\n\nEntendido. Vou seguir essas instruções.` }]
+        parts: [{ text: `[INSTRUÇÕES]\n${system}\n[FIM]\n\nEntendido. Vou seguir essas instruções.` }]
       });
       geminiContents.push({
         role: "model",
-        parts: [{ text: "Entendido. Sou um especialista em incorporação imobiliária na Bahia e no Brasil. Como posso ajudar?" }]
+        parts: [{ text: "Entendido. Sou especialista em incorporação imobiliária na Bahia e no Brasil. Como posso ajudar?" }]
       });
     }
 
-    // Processa as mensagens do histórico
+    // Processa histórico de mensagens
     for (const msg of messages || []) {
       const role = msg.role === "assistant" ? "model" : "user";
       const parts = [];
 
       if (typeof msg.content === "string") {
-        if (msg.content.trim()) {
-          parts.push({ text: msg.content });
-        }
+        if (msg.content.trim()) parts.push({ text: msg.content });
       } else if (Array.isArray(msg.content)) {
         for (const block of msg.content) {
           if (block.type === "text" && block.text) {
             parts.push({ text: block.text });
-          } else if (block.type === "image" && block.source?.data) {
+          } else if (block.type === "image" && block.source && block.source.data) {
             parts.push({
               inlineData: {
                 mimeType: block.source.media_type || "image/jpeg",
                 data: block.source.data,
               }
             });
-          } else if (block.type === "document" && block.source?.data) {
+          } else if (block.type === "document" && block.source && block.source.data) {
             parts.push({
               inlineData: {
                 mimeType: "application/pdf",
@@ -63,22 +57,18 @@ export default async function handler(req, res) {
         }
       }
 
-      if (parts.length > 0) {
-        geminiContents.push({ role, parts });
-      }
+      if (parts.length > 0) geminiContents.push({ role, parts });
     }
 
-    // Garante que a última mensagem seja do usuário
-    // (Gemini exige que o histórico alterne user/model)
+    // Mescla mensagens consecutivas do mesmo role (Gemini exige alternância)
     const cleaned = [];
     for (let i = 0; i < geminiContents.length; i++) {
       const cur = geminiContents[i];
       const last = cleaned[cleaned.length - 1];
       if (last && last.role === cur.role) {
-        // Mescla partes se mesmo role em sequência
-        last.parts = [...last.parts, ...cur.parts];
+        last.parts = last.parts.concat(cur.parts);
       } else {
-        cleaned.push({ ...cur, parts: [...cur.parts] });
+        cleaned.push({ role: cur.role, parts: cur.parts.slice() });
       }
     }
 
@@ -105,17 +95,16 @@ export default async function handler(req, res) {
     const data = await response.json();
 
     if (!response.ok) {
-      const errMsg = data.error?.message || JSON.stringify(data);
-      return res.status(response.status).json({ error: errMsg });
+      return res.status(response.status).json({ error: data.error && data.error.message ? data.error.message : JSON.stringify(data) });
     }
 
-    const text = data.candidates?.[0]?.content?.parts
-      ?.filter((p: any) => p.text)
-      ?.map((p: any) => p.text)
-      ?.join("") || "";
+    // Extrai texto da resposta
+    const candidates = data.candidates || [];
+    const firstCandidate = candidates[0] || {};
+    const contentParts = (firstCandidate.content && firstCandidate.content.parts) || [];
+    const text = contentParts.filter(p => p.text).map(p => p.text).join("");
 
-    // Safety block
-    if (!text && data.candidates?.[0]?.finishReason === "SAFETY") {
+    if (!text && firstCandidate.finishReason === "SAFETY") {
       return res.status(200).json({
         content: [{ type: "text", text: "Resposta bloqueada pelo filtro do Google. Reformule a pergunta." }],
         stop_reason: "end_turn",
@@ -127,7 +116,7 @@ export default async function handler(req, res) {
       stop_reason: "end_turn",
     });
 
-  } catch (err: any) {
+  } catch (err) {
     return res.status(500).json({ error: err.message });
   }
 }
