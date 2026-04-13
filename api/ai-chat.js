@@ -1,9 +1,6 @@
-// api/ai-chat.js — Proxy Vercel usando Google Gemini (gratuito)
-// Chave grátis em: aistudio.google.com → "Get API Key" → "Create API Key"
-// Coloque no Vercel: Settings → Environment Variables → GEMINI_API_KEY
-//
-// Suporta: texto, imagens (PNG/JPG/WEBP), PDF
-// Modelo: gemini-2.0-flash — rápido, gratuito e com visão computacional
+// api/ai-chat.js — Google Gemini 1.5 Flash (gratuito, sem cartão)
+// Chave em: aistudio.google.com → Get API Key
+// Vercel: Settings → Environment Variables → GEMINI_API_KEY
 
 export default async function handler(req, res) {
   if (req.method !== "POST") {
@@ -13,17 +10,29 @@ export default async function handler(req, res) {
   const apiKey = process.env.GEMINI_API_KEY;
   if (!apiKey) {
     return res.status(500).json({
-      error: "GEMINI_API_KEY não configurada no Vercel. Acesse aistudio.google.com, crie sua chave grátis e adicione em Settings → Environment Variables."
+      error: "GEMINI_API_KEY não configurada no Vercel."
     });
   }
 
   try {
     const { messages, system, max_tokens } = req.body;
 
-    // Monta partes do conteúdo para o Gemini
     const geminiContents = [];
 
-    // Processa cada mensagem
+    // Injeta o system prompt como primeira mensagem do usuário
+    // (API v1 não tem systemInstruction — colocamos no início do contexto)
+    if (system) {
+      geminiContents.push({
+        role: "user",
+        parts: [{ text: `[INSTRUÇÕES DO SISTEMA]\n${system}\n[FIM DAS INSTRUÇÕES]\n\nEntendido. Vou seguir essas instruções.` }]
+      });
+      geminiContents.push({
+        role: "model",
+        parts: [{ text: "Entendido. Sou um especialista em incorporação imobiliária na Bahia e no Brasil. Como posso ajudar?" }]
+      });
+    }
+
+    // Processa as mensagens do histórico
     for (const msg of messages || []) {
       const role = msg.role === "assistant" ? "model" : "user";
       const parts = [];
@@ -37,7 +46,6 @@ export default async function handler(req, res) {
           if (block.type === "text" && block.text) {
             parts.push({ text: block.text });
           } else if (block.type === "image" && block.source?.data) {
-            // Imagem base64 — Gemini suporta diretamente
             parts.push({
               inlineData: {
                 mimeType: block.source.media_type || "image/jpeg",
@@ -45,7 +53,6 @@ export default async function handler(req, res) {
               }
             });
           } else if (block.type === "document" && block.source?.data) {
-            // PDF — Gemini 2.0 suporta PDF via inlineData
             parts.push({
               inlineData: {
                 mimeType: "application/pdf",
@@ -61,31 +68,38 @@ export default async function handler(req, res) {
       }
     }
 
-    // System instruction separada (Gemini tem campo próprio)
-    const systemInstruction = system
-      ? { parts: [{ text: system }] }
-      : undefined;
-
-    const requestBody = {
-      contents: geminiContents,
-      generationConfig: {
-        maxOutputTokens: max_tokens || 1200,
-        temperature: 0.7,
-      },
-    };
-
-    if (systemInstruction) {
-      requestBody.systemInstruction = systemInstruction;
+    // Garante que a última mensagem seja do usuário
+    // (Gemini exige que o histórico alterne user/model)
+    const cleaned = [];
+    for (let i = 0; i < geminiContents.length; i++) {
+      const cur = geminiContents[i];
+      const last = cleaned[cleaned.length - 1];
+      if (last && last.role === cur.role) {
+        // Mescla partes se mesmo role em sequência
+        last.parts = [...last.parts, ...cur.parts];
+      } else {
+        cleaned.push({ ...cur, parts: [...cur.parts] });
+      }
     }
 
-    // Gemini 1.5 Flash — gratuito com visão e PDF
-    const model = "gemini-1.5-flash-8b";
-    const url = `https://generativelanguage.googleapis.com/v1/models/${model}:generateContent?key=${apiKey}`;
+    const url = `https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
 
     const response = await fetch(url, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(requestBody),
+      body: JSON.stringify({
+        contents: cleaned,
+        generationConfig: {
+          maxOutputTokens: max_tokens || 1200,
+          temperature: 0.7,
+        },
+        safetySettings: [
+          { category: "HARM_CATEGORY_HARASSMENT",        threshold: "BLOCK_NONE" },
+          { category: "HARM_CATEGORY_HATE_SPEECH",       threshold: "BLOCK_NONE" },
+          { category: "HARM_CATEGORY_SEXUALLY_EXPLICIT", threshold: "BLOCK_NONE" },
+          { category: "HARM_CATEGORY_DANGEROUS_CONTENT", threshold: "BLOCK_NONE" },
+        ],
+      }),
     });
 
     const data = await response.json();
@@ -95,30 +109,25 @@ export default async function handler(req, res) {
       return res.status(response.status).json({ error: errMsg });
     }
 
-    // Extrai texto da resposta Gemini
     const text = data.candidates?.[0]?.content?.parts
-      ?.filter(p => p.text)
-      ?.map(p => p.text)
+      ?.filter((p: any) => p.text)
+      ?.map((p: any) => p.text)
       ?.join("") || "";
 
-    if (!text) {
-      // Verifica se foi bloqueado por safety
-      const finishReason = data.candidates?.[0]?.finishReason;
-      if (finishReason === "SAFETY") {
-        return res.status(200).json({
-          content: [{ type: "text", text: "Resposta bloqueada por filtro de segurança do Google. Reformule a pergunta." }],
-          stop_reason: "end_turn",
-        });
-      }
+    // Safety block
+    if (!text && data.candidates?.[0]?.finishReason === "SAFETY") {
+      return res.status(200).json({
+        content: [{ type: "text", text: "Resposta bloqueada pelo filtro do Google. Reformule a pergunta." }],
+        stop_reason: "end_turn",
+      });
     }
 
-    // Retorna no formato que o AIAssistant espera
     return res.status(200).json({
       content: [{ type: "text", text: text || "Sem resposta. Tente novamente." }],
       stop_reason: "end_turn",
     });
 
-  } catch (err) {
+  } catch (err: any) {
     return res.status(500).json({ error: err.message });
   }
 }
