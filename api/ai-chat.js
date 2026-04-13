@@ -80,7 +80,7 @@ export default async function handler(req, res) {
 
     // Gemini 1.5 Flash — gratuito com visão e PDF
     const model = "gemini-1.5-flash-8b";
-    const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
+    const url = `https://generativelanguage.googleapis.com/v1/models/${model}:generateContent?key=${apiKey}`;
 
     const response = await fetch(url, {
       method: "POST",
