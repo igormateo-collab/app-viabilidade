@@ -62,12 +62,80 @@ const SYSTEM = `Você é especialista sênior em incorporação imobiliária no 
 DOMÍNIO: VGV, TIR, VPL, ROI, ROE, CUB SINDUSCON-BA, SINAPI, mercado baiano (Salvador, Feira de Santana, Ilhéus, Porto Seguro, Vitória da Conquista, Lauro de Freitas, Camaçari, litoral norte/sul, interior), tributação (RET, ISS, ITBI por município BA), Lei 4.591/64, Lei 6.766/79, NBR 12721, PDU municipal, SEDUR, SUCOM, CREA-BA, CEF, SFH, SFI, MCMV.
 REGRAS: Nunca invente números. Valores específicos com justificativa. Linguagem técnica de incorporação.`;
 
-const EXTRACTION_PROMPT = `Analise este arquivo/imagem e extraia dados imobiliários.
-CAMPOS: ${Object.entries(FIELD_LABELS).map(([k, v]) => `${k}:${v}`).join(", ")}
-RETORNE APENAS JSON PURO (sem markdown):
-{"campos":{"landValue":{"valor":1500000,"confianca":0.95,"evidencia":"texto visto"},...},"tipologias":[{"nome":"2BR","areaPriv":65,"qtd":8,"vagas":1,"preco":620000,"confianca":0.9}],"nao_encontrado":["campo"],"alertas":["alerta"],"resumo":"O que encontrou"}
-Confiança: 1.0=explícito, 0.8=claro, 0.6=inferido — abaixo de 0.6 NÃO inclua.`;
+const EXTRACTION_PROMPT = `Analise o conteúdo do documento abaixo e extraia dados imobiliários.
+CAMPOS DISPONÍVEIS: ${Object.entries(FIELD_LABELS).map(([k, v]) => `${k}:${v}`).join(", ")}
+RETORNE APENAS JSON PURO (sem markdown, sem texto antes ou depois):
+{"campos":{"landValue":{"valor":1500000,"confianca":0.95,"evidencia":"texto exato visto"},...},"tipologias":[{"nome":"2BR","areaPriv":65,"qtd":8,"vagas":1,"preco":620000,"confianca":0.9}],"nao_encontrado":["campo"],"alertas":["alerta se houver"],"resumo":"Breve descrição do que foi encontrado"}
+Confiança: 1.0=explícito no documento, 0.8=claro mas com pequena dúvida, 0.6=inferido — abaixo de 0.6 NÃO inclua.`;
 
+// ── Extração de texto do PDF via pdf.js CDN ───────────────────
+async function extractPdfText(file: File): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = async (e) => {
+      try {
+        const typedArray = new Uint8Array(e.target!.result as ArrayBuffer);
+
+        // Carrega pdf.js do CDN
+        const pdfjsLib = (window as any).pdfjsLib;
+        if (!pdfjsLib) {
+          // Injeta o script se não estiver carregado
+          await new Promise<void>((res, rej) => {
+            const script = document.createElement("script");
+            script.src = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js";
+            script.onload = () => {
+              (window as any).pdfjsLib.GlobalWorkerOptions.workerSrc =
+                "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
+              res();
+            };
+            script.onerror = rej;
+            document.head.appendChild(script);
+          });
+        } else {
+          pdfjsLib.GlobalWorkerOptions.workerSrc =
+            "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
+        }
+
+        const lib = (window as any).pdfjsLib;
+        const pdf = await lib.getDocument({ data: typedArray }).promise;
+        let fullText = "";
+
+        for (let i = 1; i <= pdf.numPages; i++) {
+          const page = await pdf.getPage(i);
+          const content = await page.getTextContent();
+          const pageText = content.items
+            .map((item: any) => item.str)
+            .join(" ");
+          fullText += `\n--- Página ${i} ---\n${pageText}`;
+        }
+
+        resolve(fullText.trim());
+      } catch (err: any) {
+        reject(new Error("Falha ao extrair texto do PDF: " + err.message));
+      }
+    };
+    reader.onerror = () => reject(new Error("Falha ao ler o arquivo PDF."));
+    reader.readAsArrayBuffer(file);
+  });
+}
+
+// ── Converte imagem para base64 ───────────────────────────────
+async function imageToBase64(file: File): Promise<string> {
+  return new Promise((res, rej) => {
+    const r = new FileReader();
+    r.onload = () => res((r.result as string).split(",")[1]);
+    r.onerror = rej;
+    r.readAsDataURL(file);
+  });
+}
+
+function getMime(file: File): string {
+  if (file.type.startsWith("image/")) return file.type;
+  const e = file.name.split(".").pop()?.toLowerCase() || "";
+  return ({ png: "image/png", jpg: "image/jpeg", jpeg: "image/jpeg", webp: "image/webp", gif: "image/gif" } as Record<string, string>)[e] || "image/png";
+}
+
+// ── Chamada ao proxy ──────────────────────────────────────────
 async function callProxy(body: Record<string, any>): Promise<{ text: string }> {
   const resp = await fetch("/api/ai-chat", {
     method: "POST",
@@ -83,29 +151,21 @@ async function callProxy(body: Record<string, any>): Promise<{ text: string }> {
   return { text };
 }
 
-async function toBase64(file: File): Promise<string> {
-  return new Promise((res, rej) => {
-    const r = new FileReader();
-    r.onload = () => res((r.result as string).split(",")[1]);
-    r.onerror = rej;
-    r.readAsDataURL(file);
-  });
-}
-
-function getMime(file: File): string {
-  if (file.type === "application/pdf" || file.name.endsWith(".pdf")) return "application/pdf";
-  if (file.type.startsWith("image/")) return file.type;
-  const e = file.name.split(".").pop()?.toLowerCase() || "";
-  return ({ png: "image/png", jpg: "image/jpeg", jpeg: "image/jpeg", webp: "image/webp", gif: "image/gif" } as Record<string, string>)[e] || "image/png";
-}
-
 const cColor = (c: number) => c >= 0.9 ? T.greenL : c >= 0.7 ? T.amberL : T.redL;
 const cLabel = (c: number) => c >= 0.9 ? "Alta" : c >= 0.7 ? "Média" : "Baixa";
 
-interface Msg { role: string; content: string; ts: number; usedSearch?: boolean; isError?: boolean; isPrint?: boolean; }
-interface FileData { name: string; type: string; status: string; progress: string; extractedFields: Record<string, any>; tipologias: any[]; alerts: string[]; notFound: string[]; summary: string; fieldCount: number; preview: string | null; error?: string; }
-
-const emptyFile = (): FileData => ({ name: "", type: "", status: "idle", progress: "", extractedFields: {}, tipologias: [], alerts: [], notFound: [], summary: "", fieldCount: 0, preview: null });
+interface Msg { role: string; content: string; ts: number; isError?: boolean; isPrint?: boolean; }
+interface FileData {
+  name: string; type: string; status: string; progress: string;
+  extractedFields: Record<string, any>; tipologias: any[];
+  alerts: string[]; notFound: string[]; summary: string;
+  fieldCount: number; preview: string | null; error?: string;
+}
+const emptyFile = (): FileData => ({
+  name: "", type: "", status: "idle", progress: "",
+  extractedFields: {}, tipologias: [], alerts: [], notFound: [],
+  summary: "", fieldCount: 0, preview: null,
+});
 
 export default function AIAssistant() {
   const ctx = useProject();
@@ -134,7 +194,10 @@ export default function AIAssistant() {
 
   useEffect(() => {
     if (open && msgs.length === 0) {
-      setMsgs([{ role: "assistant", ts: Date.now(), content: `Olá! Especialista em incorporação — **Bahia e Brasil**.\n\nAnalisei o projeto **${ctx.enterprise.name || "atual"}** em tempo real.\n\n**💬 Chat** — leis, CUB, mercado, viabilidade\n\n**📎 Arquivo** — PDF ou imagem (JPG, PNG…)\n\n**📋 Print** — pressione **Ctrl+V** para colar\n\nO que precisa?` }]);
+      setMsgs([{
+        role: "assistant", ts: Date.now(),
+        content: `Olá! Especialista em incorporação — **Bahia e Brasil**.\n\nAnalisei o projeto **${ctx.enterprise.name || "atual"}** em tempo real.\n\n**💬 Chat** — leis, CUB, mercado, viabilidade\n\n**📎 Arquivo** — PDF (texto extraído automaticamente) ou imagem\n\n**📋 Print** — pressione **Ctrl+V** para colar\n\nO que precisa?`
+      }]);
     }
   }, [open]);
 
@@ -179,39 +242,97 @@ export default function AIAssistant() {
     const ext = (f.name.split(".").pop() || "").toLowerCase();
     const isImg = f.type.startsWith("image/") || ["png", "jpg", "jpeg", "webp", "gif", "bmp"].includes(ext);
     const isPdf = f.type === "application/pdf" || f.name.toLowerCase().endsWith(".pdf");
-    if (!isImg && !isPdf) { setFi({ ...emptyFile(), name: f.name, status: "error", error: `Formato .${ext} não suportado. Use PDF ou imagem.` }); setTab("arquivo"); return; }
-    if (f.size > 12 * 1024 * 1024) { setFi({ ...emptyFile(), name: f.name, status: "error", error: "Arquivo maior que 12MB." }); setTab("arquivo"); return; }
+
+    if (!isImg && !isPdf) {
+      setFi({ ...emptyFile(), name: f.name, status: "error", error: `Formato .${ext} não suportado. Use PDF ou imagem (PNG, JPG…).` });
+      setTab("arquivo"); return;
+    }
+    if (f.size > 20 * 1024 * 1024) {
+      setFi({ ...emptyFile(), name: f.name, status: "error", error: "Arquivo maior que 20MB." });
+      setTab("arquivo"); return;
+    }
+
     if (origin === "print") setMsgs(p => [...p, { role: "user", content: "[Print colado — analisando…]", ts: Date.now(), isPrint: true }]);
-    setFi({ ...emptyFile(), name: f.name, type: isImg ? "imagem" : "pdf", status: "parsing", progress: `Lendo ${isImg ? "imagem" : "PDF"}…` });
+    setFi({ ...emptyFile(), name: f.name, type: isImg ? "imagem" : "pdf", status: "parsing", progress: isPdf ? "Extraindo texto do PDF…" : "Lendo imagem…" });
     setShowP(false); setTab("arquivo");
+
     try {
-      const b64 = await toBase64(f);
-      if (b64.length > 9 * 1024 * 1024) throw new Error("Arquivo muito grande. Reduza a resolução.");
-      const mt = getMime(f);
-      setFi(p => ({ ...p, progress: "Analisando com IA…" }));
-      const fileBlock = isPdf
-        ? { type: "document", source: { type: "base64", media_type: "application/pdf", data: b64 } }
-        : { type: "image", source: { type: "base64", media_type: mt, data: b64 } };
+      let messageContent: any[];
+
+      if (isPdf) {
+        // Extrai texto do PDF via pdf.js — sem precisar de Gemini
+        setFi(p => ({ ...p, progress: "Extraindo texto do PDF com pdf.js…" }));
+        const pdfText = await extractPdfText(f);
+        if (!pdfText || pdfText.length < 50) {
+          throw new Error("PDF sem texto legível. Pode ser um PDF escaneado como imagem. Tente enviar como imagem (print do PDF).");
+        }
+        setFi(p => ({ ...p, progress: `Texto extraído (${pdfText.length} chars). Analisando com IA…` }));
+        messageContent = [{
+          type: "text",
+          text: `CONTEÚDO DO DOCUMENTO "${f.name}":\n\n${pdfText.slice(0, 12000)}\n\n---\n${EXTRACTION_PROMPT}`
+        }];
+      } else {
+        // Imagem — converte para base64 e envia via Gemini
+        setFi(p => ({ ...p, progress: "Convertendo imagem…" }));
+        const b64 = await imageToBase64(f);
+        const mt = getMime(f);
+        setFi(p => ({ ...p, progress: "Analisando imagem com IA…" }));
+        messageContent = [
+          { type: "image", source: { type: "base64", media_type: mt, data: b64 } },
+          { type: "text", text: EXTRACTION_PROMPT }
+        ];
+      }
+
       const { text: raw } = await callProxy({
-        messages: [{ role: "user", content: [fileBlock, { type: "text", text: EXTRACTION_PROMPT }] }],
-        system: "Extraia dados imobiliários. Retorne APENAS JSON puro.",
+        messages: [{ role: "user", content: messageContent }],
+        system: "Você extrai dados imobiliários de documentos brasileiros. Retorne APENAS JSON puro, sem markdown.",
         max_tokens: 2500,
       });
+
+      // Parse JSON
       let ex: any;
-      try { ex = JSON.parse(raw.replace(/```json\s*/g, "").replace(/```\s*/g, "").trim()); }
-      catch { const m = raw.match(/\{[\s\S]+\}/); if (m) { try { ex = JSON.parse(m[0]); } catch { throw new Error("JSON inválido."); } } else throw new Error("Não foi possível extrair dados. Verifique se a imagem está nítida."); }
+      try {
+        ex = JSON.parse(raw.replace(/```json\s*/g, "").replace(/```\s*/g, "").trim());
+      } catch {
+        const m = raw.match(/\{[\s\S]+\}/);
+        if (m) {
+          try { ex = JSON.parse(m[0]); }
+          catch { throw new Error("IA não retornou JSON válido. Tente novamente."); }
+        } else {
+          throw new Error("Não foi possível extrair dados estruturados do documento.");
+        }
+      }
+
       const fields = ex.campos || {}, tips = ex.tipologias || [], alerts = ex.alertas || [], nf = ex.nao_encontrado || [];
       const cnt = Object.keys(fields).length;
       const init: Record<string, boolean> = {};
       Object.entries(fields).forEach(([k, d]: any) => { if (d.confianca >= 0.7 && FIELD_LABELS[k]) init[k] = true; });
       if (tips.length > 0) init["__tips__"] = true;
       setSel(init);
-      setFi({ name: f.name, type: isImg ? "imagem" : "pdf", status: "done", extractedFields: fields, tipologias: tips, alerts, notFound: nf, summary: ex.resumo || "", fieldCount: cnt, preview: isImg ? `data:${mt};base64,${b64}` : null });
+      setFi({
+        name: f.name, type: isImg ? "imagem" : "pdf", status: "done",
+        extractedFields: fields, tipologias: tips, alerts, notFound: nf,
+        summary: ex.resumo || "", fieldCount: cnt,
+        preview: isImg ? URL.createObjectURL(f) : null,
+      });
       setShowP(true);
-      if (origin === "print") setMsgs(p => { const l = [...p]; if (l[l.length - 1]?.isPrint) l[l.length - 1] = { ...l[l.length - 1], content: `[Print — ${cnt} campos extraídos. Veja aba Arquivo.]` }; return l; });
+
+      if (origin === "print") {
+        setMsgs(p => {
+          const l = [...p];
+          if (l[l.length - 1]?.isPrint) l[l.length - 1] = { ...l[l.length - 1], content: `[Print — ${cnt} campos extraídos. Veja aba Arquivo.]` };
+          return l;
+        });
+      }
     } catch (e: any) {
       setFi(p => ({ ...p, status: "error", error: e.message }));
-      if (origin === "print") setMsgs(p => { const l = [...p]; if (l[l.length - 1]?.isPrint) l[l.length - 1] = { ...l[l.length - 1], content: `[Print — ⚠️ ${e.message}]` }; return l; });
+      if (origin === "print") {
+        setMsgs(p => {
+          const l = [...p];
+          if (l[l.length - 1]?.isPrint) l[l.length - 1] = { ...l[l.length - 1], content: `[Print — ⚠️ ${e.message}]` };
+          return l;
+        });
+      }
     }
   }, []);
 
@@ -220,11 +341,19 @@ export default function AIAssistant() {
     let newTips: any[] | null = null;
     Object.entries(sel).forEach(([k, v]) => {
       if (!v) return;
-      if (k === "__tips__") { newTips = fi.tipologias.map((t: any, i: number) => ({ id: `ex-${Date.now()}-${i}`, name: t.nome || `Tip ${i + 1}`, type: t.nome || `Tip ${i + 1}`, quantity: Number(t.qtd) || 4, privateArea: Number(t.areaPriv) || 70, parkingSpaces: Number(t.vagas) || 1, price: Number(t.preco) || 500000, totalArea: (Number(t.areaPriv) || 70) * 1.3 })); return; }
+      if (k === "__tips__") {
+        newTips = fi.tipologias.map((t: any, i: number) => ({
+          id: `ex-${Date.now()}-${i}`, name: t.nome || `Tip ${i + 1}`, type: t.nome || `Tip ${i + 1}`,
+          quantity: Number(t.qtd) || 4, privateArea: Number(t.areaPriv) || 70,
+          parkingSpaces: Number(t.vagas) || 1, price: Number(t.preco) || 500000,
+          totalArea: (Number(t.areaPriv) || 70) * 1.3,
+        }));
+        return;
+      }
       const d = fi.extractedFields[k]; if (!d) return;
       const val = d.valor;
       if (["name", "type", "city", "state", "neighborhood", "standard"].includes(k)) eUp[k] = val;
-      else if (["towers", "floors", "totalArea", "privateArea", "builtArea", "launchMonth", "constructionStart", "deliveryMonth", "totalMonths"].includes(k)) eUp[k] = Number(val);
+      else if (NUMERIC_FIELDS.has(k) && ["towers", "floors", "totalArea", "privateArea", "builtArea", "launchMonth", "constructionStart", "deliveryMonth", "totalMonths"].includes(k)) eUp[k] = Number(val);
       else if (["landValue", "itbi", "registrationCost", "brokerageCost", "dueDiligence", "legalFees", "soilInvestigation"].includes(k)) lUp[k] = Number(val) || val;
       else if (["tma", "incc", "ipca", "cdi"].includes(k)) sUp[k] = String(val);
     });
@@ -233,15 +362,19 @@ export default function AIAssistant() {
     if (Object.keys(lUp).length) { updateLand(lUp); applied++; }
     if (Object.keys(sUp).length) { updateSettings(sUp); applied++; }
     if (newTips) { setUnitTypes(newTips); applied++; }
-    if (!applied) { alert("Nenhum campo reconhecido."); return; }
+    if (!applied) { alert("Nenhum campo reconhecido para aplicar."); return; }
     setShowP(false);
-    const lista = Object.keys(sel).filter(k => sel[k] && k !== "__tips__").map(k => `- **${FIELD_LABELS[k] || k}:** ${fi.extractedFields[k]?.valor}`).join("\n");
-    const tipMsg = sel["__tips__"] ? `\n- **Tipologias:** ${fi.tipologias.length} tipos` : "";
+    const lista = Object.keys(sel).filter(k => sel[k] && k !== "__tips__")
+      .map(k => `- **${FIELD_LABELS[k] || k}:** ${fi.extractedFields[k]?.valor}`).join("\n");
+    const tipMsg = sel["__tips__"] ? `\n- **Tipologias:** ${fi.tipologias.length} tipos aplicados` : "";
     setMsgs(p => [...p, { role: "assistant", content: `✅ **Aplicado:**\n${lista}${tipMsg}\n\nVerifique no dashboard.`, ts: Date.now() }]);
     setTab("chat");
   };
 
-  const drop = useCallback((e: React.DragEvent) => { e.preventDefault(); setDrag(false); const f = e.dataTransfer.files[0]; if (f) proc(f); }, [proc]);
+  const drop = useCallback((e: React.DragEvent) => {
+    e.preventDefault(); setDrag(false);
+    const f = e.dataTransfer.files[0]; if (f) proc(f);
+  }, [proc]);
 
   return (
     <>
@@ -357,9 +490,29 @@ export default function AIAssistant() {
                     style={{ border: `2px dashed ${drag ? T.goldL : T.border}`, borderRadius: 12, padding: "24px 16px", textAlign: "center", cursor: "pointer", background: drag ? T.goldDim : "transparent", marginBottom: 12 }}>
                     <Upload size={26} color={drag ? T.goldL : T.muted} style={{ marginBottom: 8 }} />
                     <div style={{ fontSize: 13, fontWeight: 600, color: drag ? T.goldL : T.text, marginBottom: 4 }}>Arraste ou clique</div>
-                    <div style={{ fontSize: 11, color: T.muted }}>PDF · PNG · JPG · WEBP · máx. 12MB</div>
+                    <div style={{ fontSize: 11, color: T.muted }}>PDF (texto digital) · PNG · JPG · WEBP · máx. 20MB</div>
                     <div style={{ fontSize: 10, color: T.goldL, marginTop: 6 }}>📋 Ou cole um print com Ctrl+V</div>
                   </div>
+
+                  <div style={{ background: T.surf, border: `1px solid ${T.border}`, borderRadius: 10, padding: "12px 14px", marginBottom: 10 }}>
+                    <div style={{ fontSize: 11, fontWeight: 700, color: T.goldL, marginBottom: 8 }}>O que posso extrair:</div>
+                    {[
+                      ["📄", "AOP / SEDUR", "Área terreno, zona, CAB, CAM, recuos"],
+                      ["📝", "Contrato / proposta", "Valor, ITBI, corretagem, condições"],
+                      ["📊", "Print de planilha", "CUB, áreas, valores por tipologia"],
+                      ["🏠", "Foto de planta", "Tipologias, áreas, vagas"],
+                    ].map(([e, t, d]) => (
+                      <div key={t} style={{ display: "flex", gap: 8, marginBottom: 7 }}>
+                        <span style={{ fontSize: 14 }}>{e}</span>
+                        <div><div style={{ fontSize: 11, fontWeight: 600, color: T.text }}>{t}</div><div style={{ fontSize: 10, color: T.muted }}>{d}</div></div>
+                      </div>
+                    ))}
+                    <div style={{ marginTop: 8, padding: "8px 10px", background: T.amberDim, border: `1px solid ${T.amberL}33`, borderRadius: 7 }}>
+                      <div style={{ fontSize: 10, color: T.amberL, fontWeight: 600, marginBottom: 2 }}>⚠️ Limitações:</div>
+                      <div style={{ fontSize: 10, color: T.muted, lineHeight: 1.5 }}>PDFs escaneados (imagem) não têm texto — envie como imagem JPG/PNG. Sempre revise antes de aplicar.</div>
+                    </div>
+                  </div>
+
                   {fi.status === "error" && (
                     <div style={{ background: T.redDim, border: `1px solid ${T.redL}44`, borderRadius: 10, padding: "12px 14px" }}>
                       <div style={{ display: "flex", gap: 8, alignItems: "flex-start" }}>
@@ -382,7 +535,11 @@ export default function AIAssistant() {
 
               {fi.status === "done" && showP && (
                 <div>
-                  {fi.preview && <div style={{ marginBottom: 10, borderRadius: 10, overflow: "hidden", border: `1px solid ${T.border}` }}><img src={fi.preview} alt="Preview" style={{ width: "100%", maxHeight: 160, objectFit: "contain", background: T.surf, display: "block" }} /></div>}
+                  {fi.preview && (
+                    <div style={{ marginBottom: 10, borderRadius: 10, overflow: "hidden", border: `1px solid ${T.border}` }}>
+                      <img src={fi.preview} alt="Preview" style={{ width: "100%", maxHeight: 160, objectFit: "contain", background: T.surf, display: "block" }} />
+                    </div>
+                  )}
 
                   <div style={{ background: T.greenDim, border: `1px solid ${T.greenL}44`, borderRadius: 10, padding: "11px 13px", marginBottom: 10 }}>
                     <div style={{ display: "flex", gap: 8, alignItems: "flex-start" }}>
@@ -499,7 +656,6 @@ function Fmt({ text }: { text: string }) {
     </div>
   );
 }
-
 function Bold({ t }: { t: string }) {
   return <>{t.split(/(\*\*[^*]+\*\*)/g).map((p, i) => p.startsWith("**") && p.endsWith("**") ? <strong key={i} style={{ color: T.text, fontWeight: 700 }}>{p.slice(2, -2)}</strong> : <span key={i}>{p}</span>)}</>;
 }
