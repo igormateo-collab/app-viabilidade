@@ -1,14 +1,14 @@
-// api/ai-chat.js — Groq (gratuito, sem cartão)
-// 1. Acesse console.groq.com → crie conta → API Keys → Create API Key
-// 2. Copie a chave (começa com gsk_...)
-// 3. Vercel → Settings → Environment Variables → GROQ_API_KEY = gsk_...
-// 4. Redeploy
-// Detecta se a requisição tem arquivo
+// api/ai-chat.js — Passo 1: Groq funcionando + detector de arquivo
+// GROQ_API_KEY = gsk_... (console.groq.com)
+
+// Detecta se a requisição tem PDF ou imagem
 function temArquivo(messages) {
-  return (messages || []).some(msg =>
-    Array.isArray(msg.content) &&
-    msg.content.some(b => b.type === "image" || b.type === "document")
-  );
+  return (messages || []).some(function(msg) {
+    return Array.isArray(msg.content) &&
+      msg.content.some(function(b) {
+        return b.type === "image" || b.type === "document";
+      });
+  });
 }
 
 export default async function handler(req, res) {
@@ -21,39 +21,38 @@ export default async function handler(req, res) {
     return res.status(500).json({ error: "GROQ_API_KEY não configurada no Vercel." });
   }
 
+  const { messages, system, max_tokens } = req.body || {};
+
+  // Por enquanto, avisa se houver arquivo (Passo 2 vai tratar isso)
+  if (temArquivo(messages)) {
+    return res.status(200).json({
+      content: [{ type: "text", text: "⚙️ Suporte a PDF e imagens será ativado no próximo passo. Por enquanto use o chat de texto." }],
+      stop_reason: "end_turn",
+    });
+  }
+
   try {
-    const { messages, system, max_tokens } = req.body;
-
-    // Monta mensagens no formato Groq/OpenAI
     const groqMessages = [];
+    if (system) groqMessages.push({ role: "system", content: system });
 
-    // System prompt
-    if (system) {
-      groqMessages.push({ role: "system", content: system });
-    }
-
-    // Histórico — Groq só aceita string como content
     for (const msg of messages || []) {
       let content = "";
       if (typeof msg.content === "string") {
         content = msg.content;
       } else if (Array.isArray(msg.content)) {
-        // Extrai só o texto (Groq não processa imagens)
         content = msg.content
-          .filter(b => b.type === "text")
-          .map(b => b.text)
+          .filter(function(b) { return b.type === "text"; })
+          .map(function(b) { return b.text; })
           .join("\n");
       }
-      if (content.trim()) {
-        groqMessages.push({ role: msg.role, content });
-      }
+      if (content.trim()) groqMessages.push({ role: msg.role, content: content });
     }
 
-    const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+    const r = await fetch("https://api.groq.com/openai/v1/chat/completions", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        "Authorization": `Bearer ${apiKey}`,
+        "Authorization": "Bearer " + apiKey,
       },
       body: JSON.stringify({
         model: "llama-3.3-70b-versatile",
@@ -63,21 +62,19 @@ export default async function handler(req, res) {
       }),
     });
 
-    const data = await response.json();
-
-    if (!response.ok) {
-      return res.status(response.status).json({
-        error: data.error && data.error.message ? data.error.message : JSON.stringify(data)
+    const d = await r.json();
+    if (!r.ok) {
+      return res.status(r.status).json({
+        error: d.error && d.error.message ? d.error.message : JSON.stringify(d)
       });
     }
 
-    const text = data.choices && data.choices[0] && data.choices[0].message
-      ? data.choices[0].message.content
-      : "";
+    const text = d.choices && d.choices[0] && d.choices[0].message
+      ? d.choices[0].message.content
+      : "Sem resposta.";
 
-    // Retorna no formato que o AIAssistant espera
     return res.status(200).json({
-      content: [{ type: "text", text: text || "Sem resposta. Tente novamente." }],
+      content: [{ type: "text", text: text }],
       stop_reason: "end_turn",
     });
 
