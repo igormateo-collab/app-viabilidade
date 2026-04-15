@@ -64,9 +64,17 @@ REGRAS: Nunca invente números. Valores específicos com justificativa. Linguage
 
 const EXTRACTION_PROMPT = `Analise o conteúdo do documento abaixo e extraia dados imobiliários.
 CAMPOS DISPONÍVEIS: ${Object.entries(FIELD_LABELS).map(([k, v]) => `${k}:${v}`).join(", ")}
-RETORNE APENAS JSON PURO (sem markdown, sem texto antes ou depois):
-{"campos":{"landValue":{"valor":1500000,"confianca":0.95,"evidencia":"texto exato visto"},...},"tipologias":[{"nome":"2BR","areaPriv":65,"qtd":8,"vagas":1,"preco":620000,"confianca":0.9}],"nao_encontrado":["campo"],"alertas":["alerta se houver"],"resumo":"Breve descrição do que foi encontrado"}
-Confiança: 1.0=explícito no documento, 0.8=claro mas com pequena dúvida, 0.6=inferido — abaixo de 0.6 NÃO inclua.`;
+
+REGRAS ESPECIAIS PARA AOP/SEDUR:
+- Se encontrar "Área do Terreno", mapeie para "totalArea"
+- Se encontrar CAM (Coeficiente de Aproveitamento Máximo), calcule builtArea = areaTerreno × CAM e mapeie para "builtArea"
+- Se encontrar nome do requerente, mapeie para "name"
+- Se encontrar bairro, mapeie para "neighborhood"
+- Se encontrar cidade, mapeie para "city"
+
+RETORNE APENAS JSON PURO (sem markdown):
+{"campos":{"totalArea":{"valor":754,"confianca":0.99,"evidencia":"Área do Terreno: 754"},"builtArea":{"valor":2262,"confianca":0.95,"evidencia":"CAM=3,0 × 754m²"},"neighborhood":{"valor":"Luiz Anselmo","confianca":0.99,"evidencia":"Bairro: LUIZ ANSELMO"},...},"tipologias":[],"nao_encontrado":["campo"],"alertas":["alerta se houver"],"resumo":"Breve descrição"}
+Confiança: 1.0=explícito, 0.8=calculado com evidência clara, 0.6=inferido.`;
 
 // ── Extração de texto do PDF via pdf.js CDN ───────────────────
 async function extractPdfText(file: File): Promise<string> {
