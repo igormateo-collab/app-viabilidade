@@ -87,6 +87,20 @@ function fileToBase64(file: File): Promise<string> {
   });
 }
 
+async function parseJsonResponse(resp: Response) {
+  const raw = await resp.text();
+
+  try {
+    return raw ? JSON.parse(raw) : null;
+  } catch {
+    throw new Error(
+      raw?.trim()
+        ? raw
+        : `Resposta inválida do servidor (HTTP ${resp.status})`,
+    );
+  }
+}
+
 function extractJsonFromText(text: string): ExtractedPayload | null {
   if (!text) return null;
 
@@ -492,7 +506,7 @@ export default function AIAssistant() {
         }),
       });
 
-      const data = await resp.json();
+      const data = await parseJsonResponse(resp);
 
       if (!resp.ok) {
         throw new Error(data?.error || `Erro HTTP ${resp.status}`);
@@ -560,7 +574,7 @@ export default function AIAssistant() {
         }),
       });
 
-      const data = await resp.json();
+      const data = await parseJsonResponse(resp);
 
       if (!resp.ok) {
         throw new Error(data?.error || `Erro HTTP ${resp.status}`);
