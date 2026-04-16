@@ -25,7 +25,6 @@ import ComparadorPage from "./pages/ComparadorPage";
 import ConfiguracoesPage from "./pages/ConfiguracoesPage";
 import AuditoriaPage from "./pages/AuditoriaPage";
 import NotFound from "./pages/NotFound";
-import AIAssistant from "./AIAssistant";
 
 const queryClient = new QueryClient();
 
@@ -60,8 +59,6 @@ const App = () => (
                 <Route path="*" element={<NotFound />} />
               </Routes>
             </AppLayout>
-            {/* Botão IA — flutua sobre todas as páginas */}
-            <AIAssistant />
           </BrowserRouter>
         </TooltipProvider>
       </ProjectProvider>
