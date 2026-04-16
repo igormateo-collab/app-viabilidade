@@ -54,6 +54,14 @@ type ExtractionRow = {
   confidence: string;
   sourceText: string;
 };
+
+type ExtractionRow = {
+  label: string;
+  value: string;
+  page: string;
+  confidence: string;
+  sourceText: string;
+};
   notes?: string[];
 };
 
