@@ -47,6 +47,16 @@ type ExtractedPayload = {
   notes?: string[];
 };
 
+type ExtractionRow = {
+  label: string;
+  value: string;
+  page: string;
+  confidence: string;
+  sourceText: string;
+};
+  notes?: string[];
+};
+
 const T = {
   bg: "#030b1a",
   surf: "#061020",
@@ -459,6 +469,41 @@ export default function AIAssistant() {
     ].filter(Boolean);
   }, [lastExtraction]);
 
+  const extractionRows = useMemo(() => {
+    if (!lastExtraction?.fields) return [] as ExtractionRow[];
+    const entries: Array<[string, ExtractedField<any> | undefined]> = [
+      ["Logradouro", lastExtraction.fields.address],
+      ["Número", lastExtraction.fields.addressNumber],
+      ["Bairro", lastExtraction.fields.neighborhood],
+      ["Cidade", lastExtraction.fields.city],
+      ["UF", lastExtraction.fields.state],
+      ["CEP", lastExtraction.fields.zipCode],
+      ["Área do terreno", lastExtraction.fields.landArea],
+      ["Área construída", lastExtraction.fields.builtArea],
+      ["Área privativa", lastExtraction.fields.privateArea],
+      ["Área comum", lastExtraction.fields.commonArea],
+      ["Área vendável", lastExtraction.fields.sellableArea],
+      ["Tipo", lastExtraction.fields.type],
+      ["Processo", lastExtraction.fields.process],
+      ["Uso", lastExtraction.fields.use],
+      ["Grupo de uso", lastExtraction.fields.useGroup],
+      ["Zona", lastExtraction.fields.zone],
+    ];
+
+    return entries
+      .filter(([, field]) => field && field.value != null && String(field.value).trim() !== "")
+      .map(([label, field]) => ({
+        label,
+        value: String(field?.value ?? ""),
+        page: field?.page != null ? String(field.page) : "-",
+        confidence:
+          field?.confidence != null && Number.isFinite(Number(field.confidence))
+            ? `${Math.round(Number(field.confidence) * 100)}%`
+            : "-",
+        sourceText: String(field?.sourceText ?? "").trim(),
+      }));
+  }, [lastExtraction]);
+
   return (
     <>
       {!open && (
@@ -635,6 +680,50 @@ export default function AIAssistant() {
               </div>
             )}
           </div>
+
+          {extractionRows.length > 0 && (
+            <div
+              style={{
+                padding: 12,
+                borderBottom: `1px solid ${T.border}`,
+                background: "#081120",
+                display: "flex",
+                flexDirection: "column",
+                gap: 8,
+                maxHeight: 180,
+                overflowY: "auto",
+              }}
+            >
+              <div style={{ color: T.text, fontSize: 12, fontWeight: 700 }}>
+                Origem dos campos aplicados
+              </div>
+              {extractionRows.map((row) => (
+                <div
+                  key={`${row.label}-${row.value}`}
+                  style={{
+                    border: `1px solid ${T.border}`,
+                    borderRadius: 10,
+                    padding: 8,
+                    background: "#0b1730",
+                    display: "flex",
+                    flexDirection: "column",
+                    gap: 4,
+                  }}
+                >
+                  <div style={{ color: T.text, fontSize: 11, fontWeight: 700 }}>{row.label}</div>
+                  <div style={{ color: T.sub, fontSize: 11 }}>{row.value}</div>
+                  <div style={{ color: T.muted, fontSize: 10 }}>
+                    Página: {row.page} • Confiança: {row.confidence}
+                  </div>
+                  {row.sourceText && (
+                    <div style={{ color: T.muted, fontSize: 10, lineHeight: 1.35 }}>
+                      Trecho-fonte: {row.sourceText}
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          )
 
           <div
             style={{
