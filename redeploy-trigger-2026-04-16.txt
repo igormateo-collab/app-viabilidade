@@ -1,0 +1,2 @@
+Trigger clean Vercel redeploy on latest main after AI assistant fix.
+Created by ChatGPT on 2026-04-16.
