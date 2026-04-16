@@ -55,16 +55,6 @@ type ExtractionRow = {
   sourceText: string;
 };
 
-type ExtractionRow = {
-  label: string;
-  value: string;
-  page: string;
-  confidence: string;
-  sourceText: string;
-};
-  notes?: string[];
-};
-
 const T = {
   bg: "#030b1a",
   surf: "#061020",
@@ -91,7 +81,8 @@ function fileToBase64(file: File): Promise<string> {
       const base64 = result.includes(",") ? result.split(",")[1] : result;
       resolve(base64);
     };
-    reader.onerror = () => reject(new Error("Falha ao converter arquivo em base64"));
+    reader.onerror = () =>
+      reject(new Error("Falha ao converter arquivo em base64"));
     reader.readAsDataURL(file);
   });
 }
@@ -99,7 +90,10 @@ function fileToBase64(file: File): Promise<string> {
 function extractJsonFromText(text: string): ExtractedPayload | null {
   if (!text) return null;
 
-  const fenced = text.match(/```json\s*([\s\S]*?)```/i) || text.match(/```\s*([\s\S]*?)```/i);
+  const fenced =
+    text.match(/```json\s*([\s\S]*?)```/i) ||
+    text.match(/```\s*([\s\S]*?)```/i);
+
   const candidate = fenced?.[1] || text;
 
   try {
@@ -121,10 +115,12 @@ function extractJsonFromText(text: string): ExtractedPayload | null {
 function normalizeNumber(value: unknown): number | null {
   if (value == null || value === "") return null;
   if (typeof value === "number") return Number.isFinite(value) ? value : null;
+
   const cleaned = String(value)
     .replace(/\./g, "")
     .replace(/,/g, ".")
     .replace(/[^\d.-]/g, "");
+
   const n = Number(cleaned);
   return Number.isFinite(n) ? n : null;
 }
@@ -137,6 +133,7 @@ function normalizeString(value: unknown): string {
 function inferEnterpriseType(raw: string): string | null {
   const text = raw.toLowerCase();
   if (!text) return null;
+
   if (
     text.includes("habitacional vertical") ||
     text.includes("edifício de apartamentos") ||
@@ -147,6 +144,7 @@ function inferEnterpriseType(raw: string): string | null {
   if (text.includes("horizontal")) return "Residencial Horizontal";
   if (text.includes("comercial")) return "Comercial";
   if (text.includes("misto")) return "Misto";
+
   return null;
 }
 
@@ -169,22 +167,102 @@ function buildAutofillPrompt(context: unknown, fileName: string) {
       {
         documentType: "AOP",
         fields: {
-          address: { value: null, page: null, confidence: null, sourceText: null },
-          addressNumber: { value: null, page: null, confidence: null, sourceText: null },
-          neighborhood: { value: null, page: null, confidence: null, sourceText: null },
-          city: { value: null, page: null, confidence: null, sourceText: null },
-          state: { value: null, page: null, confidence: null, sourceText: null },
-          zipCode: { value: null, page: null, confidence: null, sourceText: null },
-          landArea: { value: null, page: null, confidence: null, sourceText: null },
-          builtArea: { value: null, page: null, confidence: null, sourceText: null },
-          privateArea: { value: null, page: null, confidence: null, sourceText: null },
-          commonArea: { value: null, page: null, confidence: null, sourceText: null },
-          sellableArea: { value: null, page: null, confidence: null, sourceText: null },
-          type: { value: null, page: null, confidence: null, sourceText: null },
-          process: { value: null, page: null, confidence: null, sourceText: null },
-          use: { value: null, page: null, confidence: null, sourceText: null },
-          useGroup: { value: null, page: null, confidence: null, sourceText: null },
-          zone: { value: null, page: null, confidence: null, sourceText: null },
+          address: {
+            value: null,
+            page: null,
+            confidence: null,
+            sourceText: null,
+          },
+          addressNumber: {
+            value: null,
+            page: null,
+            confidence: null,
+            sourceText: null,
+          },
+          neighborhood: {
+            value: null,
+            page: null,
+            confidence: null,
+            sourceText: null,
+          },
+          city: {
+            value: null,
+            page: null,
+            confidence: null,
+            sourceText: null,
+          },
+          state: {
+            value: null,
+            page: null,
+            confidence: null,
+            sourceText: null,
+          },
+          zipCode: {
+            value: null,
+            page: null,
+            confidence: null,
+            sourceText: null,
+          },
+          landArea: {
+            value: null,
+            page: null,
+            confidence: null,
+            sourceText: null,
+          },
+          builtArea: {
+            value: null,
+            page: null,
+            confidence: null,
+            sourceText: null,
+          },
+          privateArea: {
+            value: null,
+            page: null,
+            confidence: null,
+            sourceText: null,
+          },
+          commonArea: {
+            value: null,
+            page: null,
+            confidence: null,
+            sourceText: null,
+          },
+          sellableArea: {
+            value: null,
+            page: null,
+            confidence: null,
+            sourceText: null,
+          },
+          type: {
+            value: null,
+            page: null,
+            confidence: null,
+            sourceText: null,
+          },
+          process: {
+            value: null,
+            page: null,
+            confidence: null,
+            sourceText: null,
+          },
+          use: {
+            value: null,
+            page: null,
+            confidence: null,
+            sourceText: null,
+          },
+          useGroup: {
+            value: null,
+            page: null,
+            confidence: null,
+            sourceText: null,
+          },
+          zone: {
+            value: null,
+            page: null,
+            confidence: null,
+            sourceText: null,
+          },
         },
         notes: [],
       },
@@ -204,11 +282,14 @@ function buildAutofillPrompt(context: unknown, fileName: string) {
 export default function AIAssistant() {
   const project = useProject();
   const { updateEnterprise } = project;
+
   const [open, setOpen] = useState(false);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  const [lastExtraction, setLastExtraction] = useState<ExtractedPayload | null>(null);
+  const [lastExtraction, setLastExtraction] =
+    useState<ExtractedPayload | null>(null);
+
   const [msgs, setMsgs] = useState<ChatMessage[]>([
     {
       role: "assistant",
@@ -244,6 +325,7 @@ export default function AIAssistant() {
       const res = await fetch(`https://viacep.com.br/ws/${cleaned}/json/`);
       const data = await res.json();
       if (data?.erro) return {};
+
       return {
         address: data.logradouro || undefined,
         neighborhood: data.bairro || undefined,
@@ -264,20 +346,34 @@ export default function AIAssistant() {
     const zip = normalizeString(fields.zipCode?.value);
     const cepData = zip ? await enrichByCep(zip) : {};
 
-    const address = normalizeString(fields.address?.value) || normalizeString(cepData.address);
+    const address =
+      normalizeString(fields.address?.value) ||
+      normalizeString(cepData.address);
     const addressNumber = normalizeString(fields.addressNumber?.value);
-    const neighborhood = normalizeString(fields.neighborhood?.value) || normalizeString(cepData.neighborhood);
-    const city = normalizeString(fields.city?.value) || normalizeString(cepData.city);
-    const state = normalizeString(fields.state?.value) || normalizeString(cepData.state);
+    const neighborhood =
+      normalizeString(fields.neighborhood?.value) ||
+      normalizeString(cepData.neighborhood);
+    const city =
+      normalizeString(fields.city?.value) || normalizeString(cepData.city);
+    const state =
+      normalizeString(fields.state?.value) || normalizeString(cepData.state);
+
     const landArea = normalizeNumber(fields.landArea?.value);
     const builtArea = normalizeNumber(fields.builtArea?.value);
     const privateArea = normalizeNumber(fields.privateArea?.value);
     const commonArea = normalizeNumber(fields.commonArea?.value);
     const sellableArea = normalizeNumber(fields.sellableArea?.value);
-    const explicitType = normalizeString(fields.type?.value);
-    const inferredType = inferEnterpriseType(explicitType || normalizeString(fields.use?.value));
 
-    const applyString = (label: string, key: keyof Enterprise, value: string) => {
+    const explicitType = normalizeString(fields.type?.value);
+    const inferredType = inferEnterpriseType(
+      explicitType || normalizeString(fields.use?.value),
+    );
+
+    const applyString = (
+      label: string,
+      key: keyof Enterprise,
+      value: string,
+    ) => {
       if (!value) {
         missing.push(label);
         return;
@@ -286,7 +382,11 @@ export default function AIAssistant() {
       updated.push(label);
     };
 
-    const applyNumber = (label: string, key: keyof Enterprise, value: number | null) => {
+    const applyNumber = (
+      label: string,
+      key: keyof Enterprise,
+      value: number | null,
+    ) => {
       if (value == null) {
         missing.push(label);
         return;
@@ -300,6 +400,7 @@ export default function AIAssistant() {
     applyString("bairro", "neighborhood", neighborhood);
     applyString("cidade", "city", city);
     applyString("UF", "state", state);
+
     applyNumber("área do terreno", "landArea", landArea);
     applyNumber("área construída", "builtArea", builtArea);
     applyNumber("área privativa", "privateArea", privateArea);
@@ -314,13 +415,25 @@ export default function AIAssistant() {
     updateEnterprise(patch);
 
     const summary = [
-      updated.length ? `Campos atualizados: ${updated.join(", ")}.` : "Nenhum campo foi atualizado.",
-      missing.length ? `Campos não encontrados no PDF: ${missing.join(", ")}.` : "Todos os campos mapeados foram encontrados.",
+      updated.length
+        ? `Campos atualizados: ${updated.join(", ")}.`
+        : "Nenhum campo foi atualizado.",
+      missing.length
+        ? `Campos não encontrados no PDF: ${missing.join(", ")}.`
+        : "Todos os campos mapeados foram encontrados.",
       zip ? `CEP extraído: ${zip}.` : "CEP não encontrado no PDF.",
     ].join("\n");
 
-    setMsgs((prev) => [...prev, { role: "assistant", content: summary }]);
-    toast.success(updated.length ? "PDF lido e dados aplicados no app" : "PDF lido, mas sem dados novos para aplicar");
+    setMsgs((prev) => [
+      ...prev,
+      { role: "assistant", content: summary },
+    ]);
+
+    toast.success(
+      updated.length
+        ? "PDF lido e dados aplicados no app"
+        : "PDF lido, mas sem dados novos para aplicar",
+    );
   }
 
   async function analyzePdfAndAutofill() {
@@ -329,16 +442,26 @@ export default function AIAssistant() {
       return;
     }
 
-    if (selectedFile.type !== "application/pdf" && !selectedFile.name.toLowerCase().endsWith(".pdf")) {
+    if (
+      selectedFile.type !== "application/pdf" &&
+      !selectedFile.name.toLowerCase().endsWith(".pdf")
+    ) {
       toast.error("Neste fluxo, envie um PDF");
       return;
     }
 
     setLoading(true);
-    setMsgs((prev) => [...prev, { role: "user", content: `Analisar PDF e preencher app: ${selectedFile.name}` }]);
+    setMsgs((prev) => [
+      ...prev,
+      {
+        role: "user",
+        content: `Analisar PDF e preencher app: ${selectedFile.name}`,
+      },
+    ]);
 
     try {
       const base64 = await fileToBase64(selectedFile);
+
       const resp = await fetch("/api/ai-chat", {
         method: "POST",
         headers: {
@@ -351,7 +474,10 @@ export default function AIAssistant() {
             {
               role: "user",
               content: [
-                { type: "text", text: buildAutofillPrompt(context, selectedFile.name) },
+                {
+                  type: "text",
+                  text: buildAutofillPrompt(context, selectedFile.name),
+                },
                 {
                   type: "document",
                   source: {
@@ -367,6 +493,7 @@ export default function AIAssistant() {
       });
 
       const data = await resp.json();
+
       if (!resp.ok) {
         throw new Error(data?.error || `Erro HTTP ${resp.status}`);
       }
@@ -380,6 +507,7 @@ export default function AIAssistant() {
         : "";
 
       const parsed = extractJsonFromText(answer);
+
       if (!parsed?.fields) {
         throw new Error("A IA não retornou um JSON válido de extração");
       }
@@ -388,7 +516,10 @@ export default function AIAssistant() {
       await applyExtraction(parsed);
     } catch (err: any) {
       const message = err?.message || "falha inesperada";
-      setMsgs((prev) => [...prev, { role: "assistant", content: `Erro ao analisar PDF: ${message}` }]);
+      setMsgs((prev) => [
+        ...prev,
+        { role: "assistant", content: `Erro ao analisar PDF: ${message}` },
+      ]);
       toast.error(`Erro ao analisar PDF: ${message}`);
     } finally {
       setLoading(false);
@@ -436,6 +567,7 @@ export default function AIAssistant() {
       }
 
       let answer = "Sem resposta.";
+
       if (Array.isArray(data?.content)) {
         answer =
           data.content
@@ -462,7 +594,9 @@ export default function AIAssistant() {
 
   const extractedSummary = useMemo(() => {
     if (!lastExtraction?.fields) return [] as string[];
+
     const f = lastExtraction.fields;
+
     return [
       f.address?.value ? `Logradouro: ${f.address.value}` : "",
       f.addressNumber?.value ? `Número: ${f.addressNumber.value}` : "",
@@ -471,14 +605,19 @@ export default function AIAssistant() {
       f.state?.value ? `UF: ${f.state.value}` : "",
       f.zipCode?.value ? `CEP: ${f.zipCode.value}` : "",
       f.landArea?.value != null ? `Área do terreno: ${f.landArea.value}` : "",
-      f.builtArea?.value != null ? `Área construída: ${f.builtArea.value}` : "",
-      f.privateArea?.value != null ? `Área privativa: ${f.privateArea.value}` : "",
+      f.builtArea?.value != null
+        ? `Área construída: ${f.builtArea.value}`
+        : "",
+      f.privateArea?.value != null
+        ? `Área privativa: ${f.privateArea.value}`
+        : "",
       f.commonArea?.value != null ? `Área comum: ${f.commonArea.value}` : "",
     ].filter(Boolean);
   }, [lastExtraction]);
 
   const extractionRows = useMemo(() => {
     if (!lastExtraction?.fields) return [] as ExtractionRow[];
+
     const entries: Array<[string, ExtractedField<any> | undefined]> = [
       ["Logradouro", lastExtraction.fields.address],
       ["Número", lastExtraction.fields.addressNumber],
@@ -499,13 +638,17 @@ export default function AIAssistant() {
     ];
 
     return entries
-      .filter(([, field]) => field && field.value != null && String(field.value).trim() !== "")
+      .filter(
+        ([, field]) =>
+          field && field.value != null && String(field.value).trim() !== "",
+      )
       .map(([label, field]) => ({
         label,
         value: String(field?.value ?? ""),
         page: field?.page != null ? String(field.page) : "-",
         confidence:
-          field?.confidence != null && Number.isFinite(Number(field.confidence))
+          field?.confidence != null &&
+          Number.isFinite(Number(field.confidence))
             ? `${Math.round(Number(field.confidence) * 100)}%`
             : "-",
         sourceText: String(field?.sourceText ?? "").trim(),
@@ -647,7 +790,8 @@ export default function AIAssistant() {
                   border: `1px solid ${T.bBright}`,
                   background: loading || !selectedFile ? "#334155" : T.gold,
                   color: "#111827",
-                  cursor: loading || !selectedFile ? "not-allowed" : "pointer",
+                  cursor:
+                    loading || !selectedFile ? "not-allowed" : "pointer",
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "center",
@@ -655,13 +799,25 @@ export default function AIAssistant() {
                   fontWeight: 600,
                 }}
               >
-                {loading ? <Loader2 size={15} className="animate-spin" /> : <FileText size={15} />}
+                {loading ? (
+                  <Loader2 size={15} className="animate-spin" />
+                ) : (
+                  <FileText size={15} />
+                )}
                 Ler PDF e preencher
               </button>
             </div>
 
             {selectedFile && (
-              <div style={{ color: T.sub, fontSize: 12, display: "flex", alignItems: "center", gap: 6 }}>
+              <div
+                style={{
+                  color: T.sub,
+                  fontSize: 12,
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 6,
+                }}
+              >
                 <CheckCircle2 size={14} color={T.green} />
                 {selectedFile.name}
               </div>
@@ -679,7 +835,9 @@ export default function AIAssistant() {
                   gap: 4,
                 }}
               >
-                <div style={{ color: T.text, fontSize: 12, fontWeight: 600 }}>Última extração</div>
+                <div style={{ color: T.text, fontSize: 12, fontWeight: 600 }}>
+                  Última extração
+                </div>
                 {extractedSummary.slice(0, 6).map((line) => (
                   <div key={line} style={{ color: T.sub, fontSize: 11 }}>
                     {line}
@@ -705,6 +863,7 @@ export default function AIAssistant() {
               <div style={{ color: T.text, fontSize: 12, fontWeight: 700 }}>
                 Origem dos campos aplicados
               </div>
+
               {extractionRows.map((row) => (
                 <div
                   key={`${row.label}-${row.value}`}
@@ -718,20 +877,30 @@ export default function AIAssistant() {
                     gap: 4,
                   }}
                 >
-                  <div style={{ color: T.text, fontSize: 11, fontWeight: 700 }}>{row.label}</div>
+                  <div
+                    style={{ color: T.text, fontSize: 11, fontWeight: 700 }}
+                  >
+                    {row.label}
+                  </div>
                   <div style={{ color: T.sub, fontSize: 11 }}>{row.value}</div>
                   <div style={{ color: T.muted, fontSize: 10 }}>
                     Página: {row.page} • Confiança: {row.confidence}
                   </div>
                   {row.sourceText && (
-                    <div style={{ color: T.muted, fontSize: 10, lineHeight: 1.35 }}>
+                    <div
+                      style={{
+                        color: T.muted,
+                        fontSize: 10,
+                        lineHeight: 1.35,
+                      }}
+                    >
                       Trecho-fonte: {row.sourceText}
                     </div>
                   )}
                 </div>
               ))}
             </div>
-          )
+          )}
 
           <div
             style={{
@@ -831,7 +1000,11 @@ export default function AIAssistant() {
                 }}
                 aria-label="Enviar"
               >
-                {loading ? <Loader2 size={16} className="animate-spin" /> : <Send size={16} />}
+                {loading ? (
+                  <Loader2 size={16} className="animate-spin" />
+                ) : (
+                  <Send size={16} />
+                )}
               </button>
             </div>
           </div>
